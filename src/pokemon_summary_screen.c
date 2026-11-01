@@ -4584,6 +4584,8 @@ static void SetMonTypeIcons(void)
     {
         SetTypeSpritePosAndPal(TYPE_MYSTERY, 120, 48, SPRITE_ARR_ID_TYPE);
         SetSpriteInvisibility(SPRITE_ARR_ID_TYPE + 1, TRUE);
+        if (P_SHOW_TERA_TYPE >= GEN_9 && sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_TERATYPE] != SPRITE_NONE)
+            SetSpriteInvisibility(SPRITE_ARR_ID_TERATYPE, TRUE);
     }
     else
     {
