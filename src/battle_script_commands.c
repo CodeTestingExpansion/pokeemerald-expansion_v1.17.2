@@ -4202,6 +4202,7 @@ static void ResetValuesForCalledMove(void)
     gBattleScripting.animTurn = 0;
     gBattleScripting.animTargetsHit = 0;
     SetTypeBeforeUsingMove(gCurrentMove, gBattlerAttacker, GetBattlerAbility(gBattlerAttacker), GetBattlerHoldEffect(gBattlerAttacker));
+    SetLegendPlateArceusType(gBattlerAttacker, gCurrentMove);
     ClearDamageCalcResults();
 }
 

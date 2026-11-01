@@ -3458,4 +3458,10 @@ extern const u16 gItemIconPalette_MaxSoup[];
 extern const u32 gItemIcon_SweetMaxSoup[];
 extern const u16 gItemIconPalette_SweetMaxSoup[];
 
+extern const u32 gItemIcon_LegendPlate[];
+extern const u16 gItemIconPalette_LegendPlate[];
+
+extern const u32 gItemIcon_BlankPlate[];
+extern const u16 gItemIconPalette_BlankPlate[];
+
 #endif //GUARD_GRAPHICS_H

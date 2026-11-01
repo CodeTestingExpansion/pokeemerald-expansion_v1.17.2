@@ -538,6 +538,7 @@ void HandleAction_UseMove(void)
     }
 
     SetTypeBeforeUsingMove(gChosenMove, gBattlerAttacker, GetBattlerAbility(gBattlerAttacker), GetBattlerHoldEffect(gBattlerAttacker));
+    SetLegendPlateArceusType(gBattlerAttacker, gChosenMove);
     gBattleStruct->baseMove = gCurrentMove;
 
     // check Z-Move used
@@ -9591,6 +9592,7 @@ void CopyMonLevelAndBaseStatsToBattleMon(enum BattlerId battler, struct Pokemon 
 
 void CopyMonAbilityAndTypesToBattleMon(enum BattlerId battler, struct Pokemon *mon)
 {
+    gBattleStruct->legendPlateArceusTypeChanged[battler] = FALSE;
     gBattleMons[battler].ability = GetMonAbility(mon);
     #if TESTING
     if (gTestRunnerEnabled)

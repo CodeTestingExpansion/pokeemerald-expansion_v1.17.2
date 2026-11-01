@@ -15,6 +15,7 @@
 #include "battle_setup.h"
 #include "battle_info.h"
 #include "battle_tower.h"
+#include "battle_util.h"
 #include "battle_z_move.h"
 #include "battle_gimmick.h"
 #include "berry.h"
@@ -3604,6 +3605,7 @@ bool32 EndTurnEvents(void) // Called from Battle Script
 {
     gBattleStruct->speedTieBreaks = RandomUniform(RNG_SPEED_TIE, 0, Factorial(MAX_BATTLERS_COUNT) - 1);
 
+    ResetLegendPlateArceusTypes();
     TurnValuesCleanUp(TRUE);
 
     if (DoEndTurnEffects())
@@ -4756,6 +4758,8 @@ static void TurnValuesCleanUp(bool32 endTurn)
         else
         {
             memset(&gProtectStructs[i], 0, sizeof(struct ProtectStruct));
+            gBattleStruct->legendPlateJudgmentRandomSet[i] = FALSE;
+            gBattleStruct->legendPlateArceusTypeChanged[i] = FALSE;
 
             if (gBattleStruct->battlerState[i].isFirstTurn)
                 gBattleStruct->battlerState[i].isFirstTurn--;
@@ -5518,6 +5522,122 @@ enum Type TrySetAteType(enum Move move, enum BattlerId battlerAtk, enum Ability 
     return ateType;
 }
 
+static bool32 IsArceusSpecies(enum Species species)
+{
+    return GET_BASE_SPECIES_ID(species) == SPECIES_ARCEUS;
+}
+
+enum Type GetLegendPlateJudgmentType(enum BattlerId battler, enum BattlerId target)
+{
+    enum Type targetTypes[3];
+    enum Type candidates[NUMBER_OF_MON_TYPES];
+    uq4_12_t bestEffectiveness = 0;
+    uq4_12_t bestPrimaryResistance = UQ_4_12(2.0);
+    uq4_12_t bestSecondaryResistance = UQ_4_12(2.0);
+    u32 candidateCount = 0;
+
+    if (battler >= gBattlersCount
+     || target >= gBattlersCount
+     || !IsArceusSpecies(gBattleMons[battler].species)
+     || GetBattlerAbility(battler) != ABILITY_MULTITYPE
+     || GetBattlerHoldEffect(battler) != HOLD_EFFECT_PLATE
+     || gBattleMons[battler].item != ITEM_LEGEND_PLATE)
+        return TYPE_NONE;
+
+    GetBattlerTypes(target, FALSE, targetTypes);
+    if (targetTypes[0] == TYPE_MYSTERY)
+        return TYPE_NONE;
+
+    for (enum Type type = TYPE_NORMAL; type <= TYPE_FAIRY; type++)
+    {
+        uq4_12_t effectiveness;
+        uq4_12_t primaryResistance;
+        uq4_12_t secondaryResistance = UQ_4_12(1.0);
+
+        if (type == TYPE_MYSTERY)
+            continue;
+
+        effectiveness = GetTypeModifier(type, targetTypes[0]);
+        primaryResistance = GetTypeModifier(targetTypes[0], type);
+        for (u32 i = 1; i < ARRAY_COUNT(targetTypes); i++)
+        {
+            if (targetTypes[i] == TYPE_MYSTERY || targetTypes[i] == targetTypes[0])
+                continue;
+
+            effectiveness = uq4_12_multiply(effectiveness, GetTypeModifier(type, targetTypes[i]));
+            if (i == 1)
+                secondaryResistance = GetTypeModifier(targetTypes[i], type);
+        }
+
+        if (effectiveness < bestEffectiveness
+         || (effectiveness == bestEffectiveness && primaryResistance > bestPrimaryResistance)
+         || (effectiveness == bestEffectiveness
+          && primaryResistance == bestPrimaryResistance
+          && secondaryResistance > bestSecondaryResistance))
+            continue;
+
+        if (effectiveness > bestEffectiveness
+         || primaryResistance < bestPrimaryResistance
+         || secondaryResistance < bestSecondaryResistance)
+        {
+            bestEffectiveness = effectiveness;
+            bestPrimaryResistance = primaryResistance;
+            bestSecondaryResistance = secondaryResistance;
+            candidateCount = 0;
+        }
+
+        candidates[candidateCount++] = type;
+    }
+
+    if (candidateCount == 0)
+        return TYPE_NONE;
+    if (candidateCount == 1)
+        return candidates[0];
+
+    if (!gBattleStruct->legendPlateJudgmentRandomSet[battler])
+    {
+        gBattleStruct->legendPlateJudgmentRandom[battler] = RandomUniform(RNG_JUDGMENT, 0, 0xFFFF);
+        gBattleStruct->legendPlateJudgmentRandomSet[battler] = TRUE;
+    }
+
+    return candidates[((u32)gBattleStruct->legendPlateJudgmentRandom[battler] * candidateCount) >> 16];
+}
+
+void SetLegendPlateArceusType(enum BattlerId battler, enum Move move)
+{
+    enum Type type;
+
+    if (move != MOVE_JUDGMENT || battler >= gBattlersCount)
+        return;
+
+    type = gBattleStruct->dynamicMoveType;
+    if (type == TYPE_NONE
+     || !IsArceusSpecies(gBattleMons[battler].species)
+     || GetBattlerAbility(battler) != ABILITY_MULTITYPE
+     || GetBattlerHoldEffect(battler) != HOLD_EFFECT_PLATE
+     || gBattleMons[battler].item != ITEM_LEGEND_PLATE)
+        return;
+
+    gBattleMons[battler].types[0] = type;
+    gBattleMons[battler].types[1] = type;
+    gBattleMons[battler].types[2] = TYPE_MYSTERY;
+    gBattleStruct->legendPlateArceusTypeChanged[battler] = TRUE;
+}
+
+void ResetLegendPlateArceusTypes(void)
+{
+    for (enum BattlerId battler = 0; battler < gBattlersCount; battler++)
+    {
+        if (!gBattleStruct->legendPlateArceusTypeChanged[battler])
+            continue;
+
+        gBattleMons[battler].types[0] = GetSpeciesType(gBattleMons[battler].species, 0);
+        gBattleMons[battler].types[1] = GetSpeciesType(gBattleMons[battler].species, 1);
+        gBattleMons[battler].types[2] = TYPE_MYSTERY;
+        gBattleStruct->legendPlateArceusTypeChanged[battler] = FALSE;
+    }
+}
+
 // Returns TYPE_NONE if type doesn't change.
 enum Type GetDynamicMoveType(struct Pokemon *mon, enum Move move, enum BattlerId battler, enum Ability ability, enum HoldEffect holdEffect, enum MonState state)
 {
@@ -5625,6 +5745,13 @@ enum Type GetDynamicMoveType(struct Pokemon *mon, enum Move move, enum BattlerId
         }
         break;
     case EFFECT_CHANGE_TYPE_ON_ITEM:
+        if (state == MON_IN_BATTLE
+         && move == MOVE_JUDGMENT
+         && ability == ABILITY_MULTITYPE
+         && holdEffect == HOLD_EFFECT_PLATE
+         && heldItem == ITEM_LEGEND_PLATE
+         && IsArceusSpecies(species))
+            return GetLegendPlateJudgmentType(battler, gBattleStruct->moveTarget[battler]);
         if (holdEffect == GetMoveEffectArg_HoldEffect(move))
             return GetItemSecondaryId(heldItem);
         break;

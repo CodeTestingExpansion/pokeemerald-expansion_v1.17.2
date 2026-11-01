@@ -69,6 +69,65 @@ SINGLE_BATTLE_TEST("Judgment changes type depending on the Plate the user holds"
     }
 }
 
+SINGLE_BATTLE_TEST("Legend Plate Judgment chooses Dragon against Palkia")
+{
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_LEGEND_PLATE].holdEffect == HOLD_EFFECT_PLATE);
+        PLAYER(SPECIES_ARCEUS) { Item(ITEM_LEGEND_PLATE); }
+        OPPONENT(SPECIES_PALKIA);
+    } WHEN {
+        TURN { MOVE(player, MOVE_JUDGMENT); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_JUDGMENT, player);
+        EFFECTIVENESS_SE(opponent, SE_SUPER_EFFECTIVE);
+        HP_BAR(opponent);
+    } THEN {
+        EXPECT_EQ(player->types[0], TYPE_NORMAL);
+        EXPECT_EQ(player->types[1], TYPE_NORMAL);
+        EXPECT_EQ(player->types[2], TYPE_MYSTERY);
+    }
+}
+
+SINGLE_BATTLE_TEST("Legend Plate Judgment chooses Dark against Giratina")
+{
+    GIVEN {
+        ASSUME(gItemsInfo[ITEM_LEGEND_PLATE].holdEffect == HOLD_EFFECT_PLATE);
+        PLAYER(SPECIES_ARCEUS) { Item(ITEM_LEGEND_PLATE); }
+        OPPONENT(SPECIES_GIRATINA);
+    } WHEN {
+        TURN { MOVE(player, MOVE_JUDGMENT); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_JUDGMENT, player);
+        EFFECTIVENESS_SE(opponent, SE_SUPER_EFFECTIVE);
+        HP_BAR(opponent);
+    } THEN {
+        EXPECT_EQ(player->types[0], TYPE_NORMAL);
+        EXPECT_EQ(player->types[1], TYPE_NORMAL);
+        EXPECT_EQ(player->types[2], TYPE_MYSTERY);
+    }
+}
+
+DOUBLE_BATTLE_TEST("Legend Plate Arceus returns to its normal type after all battlers act")
+{
+    GIVEN {
+        PLAYER(SPECIES_ARCEUS) { Item(ITEM_LEGEND_PLATE); }
+        PLAYER(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_PALKIA) { Moves(MOVE_CELEBRATE); }
+        OPPONENT(SPECIES_WOBBUFFET) { Moves(MOVE_CELEBRATE); }
+    } WHEN {
+        TURN {
+            MOVE(playerLeft, MOVE_JUDGMENT, target: opponentLeft);
+            MOVE(playerRight, MOVE_CELEBRATE);
+            MOVE(opponentLeft, MOVE_CELEBRATE);
+            MOVE(opponentRight, MOVE_CELEBRATE);
+        }
+    } THEN {
+        EXPECT_EQ(playerLeft->types[0], TYPE_NORMAL);
+        EXPECT_EQ(playerLeft->types[1], TYPE_NORMAL);
+        EXPECT_EQ(playerLeft->types[2], TYPE_MYSTERY);
+    }
+}
+
 SINGLE_BATTLE_TEST("Multi-Attack changes type depending on the Memory the user holds")
 {
     enum Species species;

@@ -2127,3 +2127,9 @@ const u16 gItemIconPalette_MaxSoup[] = INCBIN_U16("graphics/items/icon_palettes/
 
 const u32 gItemIcon_SweetMaxSoup[] = INCBIN_U32("graphics/items/icons/sweet_max_soup.4bpp.lz");
 const u16 gItemIconPalette_SweetMaxSoup[] = INCBIN_U16("graphics/items/icon_palettes/sweet_max_soup.gbapal");
+
+const u32 gItemIcon_LegendPlate[] = INCBIN_U32("graphics/items/icons/legend_plate.4bpp.lz");
+const u16 gItemIconPalette_LegendPlate[] = INCBIN_U16("graphics/items/icon_palettes/legend_plate.gbapal");
+
+const u32 gItemIcon_BlankPlate[] = INCBIN_U32("graphics/items/icons/blank_plate.4bpp.lz");
+const u16 gItemIconPalette_BlankPlate[] = INCBIN_U16("graphics/items/icon_palettes/blank_plate.gbapal");

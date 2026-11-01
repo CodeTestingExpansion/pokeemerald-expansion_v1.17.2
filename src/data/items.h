@@ -16204,6 +16204,43 @@ const struct ItemInfo gItemsInfo[] =
         .iconPic = gItemIcon_PokeshiDoll,
         .iconPalette = gItemIconPalette_PokeshiDoll,
     },
+
+    [ITEM_LEGEND_PLATE] =
+    {
+        .name = ITEM_NAME("Legend Plate"),
+        .price = 0,
+        .description = COMPOUND_STRING(
+            "A stone tablet imbued\n"
+            "with the essence\n"
+            "of all creation."),
+        .pocket = POCKET_BATTLEITEMS,
+        .sortType = ITEM_TYPE_PLATE,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .holdEffect = HOLD_EFFECT_PLATE,
+        .holdEffectParam = 20,
+        .flingPower = 90,
+        .iconPic = gItemIcon_LegendPlate,
+        .iconPalette = gItemIconPalette_LegendPlate,
+    },
+
+    [ITEM_BLANK_PLATE] =
+    {
+        .name = ITEM_NAME("Blank Plate"),
+        .price = 0,
+        .description = COMPOUND_STRING(
+            "A mysterious plate.\n" 
+            "It is said to be the\n"
+            "origin of all plates."),
+        .pocket = POCKET_BATTLEITEMS,
+        .sortType = ITEM_TYPE_PLATE,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .holdEffect = HOLD_EFFECT_NONE,
+        .flingPower = 90,
+        .iconPic = gItemIcon_BlankPlate,
+        .iconPalette = gItemIconPalette_BlankPlate,
+    },
 };
 
 #undef ITEM_NAME

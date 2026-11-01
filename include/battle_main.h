@@ -108,6 +108,9 @@ const u8 *GetChargingSetUpScript(enum BattleMoveEffects moveEffect, bool32 inMid
 void RunBattleScriptCommands_PopCallbacksStack(void);
 void RunBattleScriptCommands(void);
 enum Type GetDynamicMoveType(struct Pokemon *mon, enum Move move, enum BattlerId battler, enum Ability ability, enum HoldEffect holdEffect, enum MonState state);
+enum Type GetLegendPlateJudgmentType(enum BattlerId battler, enum BattlerId target);
+void SetLegendPlateArceusType(enum BattlerId battler, enum Move move);
+void ResetLegendPlateArceusTypes(void);
 void SetTypeBeforeUsingMove(enum Move move, enum BattlerId battler, enum Ability ability, enum HoldEffect holdEffect);
 bool32 IsWildMonSmart(void);
 void CustomTrainerPartyAssignMoves(struct Pokemon *mon, const struct TrainerMon *partyEntry);

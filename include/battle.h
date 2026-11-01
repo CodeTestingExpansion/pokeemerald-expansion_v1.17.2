@@ -610,6 +610,9 @@ struct BattleStruct
     u8 expSentInMons; // As bits for player party mons - not including exp share mons.
     u8 wildVictorySong;
     enum Type dynamicMoveType;
+    u16 legendPlateJudgmentRandom[MAX_BATTLERS_COUNT];
+    bool8 legendPlateJudgmentRandomSet[MAX_BATTLERS_COUNT];
+    bool8 legendPlateArceusTypeChanged[MAX_BATTLERS_COUNT];
     enum BattlerId battlerPreventingSwitchout;
     u8 moneyMultiplier:6;
     u8 moneyMultiplierItem:1;

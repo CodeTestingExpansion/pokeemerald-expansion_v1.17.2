@@ -80,6 +80,7 @@ static void PlayerBufferRunCommand(enum BattlerId battler);
 static void MoveSelectionDisplayPPNumber(enum BattlerId battler);
 static void MoveSelectionDisplayPPString(enum BattlerId battler);
 static void MoveSelectionDisplayMoveType(enum BattlerId battler);
+static void MoveSelectionDisplayMoveTypeAgainstTarget(enum BattlerId battler, enum BattlerId target);
 static void MoveSelectionDisplayMoveNames(enum BattlerId battler);
 static void TryMoveSelectionDisplayMoveDescription(enum BattlerId battler);
 static void MoveSelectionDisplayMoveDescription(enum BattlerId battler);
@@ -488,6 +489,7 @@ void HandleInputChooseTarget(enum BattlerId battler)
         PlaySE(SE_SELECT);
         gSprites[gBattlerSpriteIds[gMultiUsePlayerCursor]].callback = SpriteCB_HideAsMoveTarget;
         gBattlerControllerFuncs[battler] = HandleInputChooseMove;
+        MoveSelectionDisplayMoveType(battler);
         if (gBattleStruct->gimmick.playerSelect == 1 && gBattleStruct->gimmick.usableGimmick[battler] == GIMMICK_Z_MOVE)
         {
             gBattleStruct->gimmick.playerSelect = 0;
@@ -548,8 +550,13 @@ void HandleInputChooseTarget(enum BattlerId battler)
                  || (moveTarget == TARGET_OPPONENT && IsOnPlayerSide(gMultiUsePlayerCursor)))
                     validTarget = FALSE;
 
-                if (B_SHOW_EFFECTIVENESS && validTarget)
-                    MoveSelectionDisplayMoveEffectiveness(CheckTypeEffectiveness(battler, gMultiUsePlayerCursor), battler);
+                if (validTarget)
+                {
+                    if (B_SHOW_EFFECTIVENESS)
+                        MoveSelectionDisplayMoveEffectiveness(CheckTypeEffectiveness(battler, gMultiUsePlayerCursor), battler);
+                    if (move == MOVE_JUDGMENT)
+                        MoveSelectionDisplayMoveTypeAgainstTarget(battler, gMultiUsePlayerCursor);
+                }
 
             } while (!validTarget);
         }
@@ -603,6 +610,8 @@ void HandleInputChooseTarget(enum BattlerId battler)
                 if (!CanTargetBattler(battler, gMultiUsePlayerCursor, move)
                  || (moveTarget == TARGET_OPPONENT && IsOnPlayerSide(gMultiUsePlayerCursor)))
                     i = 0;
+                else if (move == MOVE_JUDGMENT)
+                    MoveSelectionDisplayMoveTypeAgainstTarget(battler, gMultiUsePlayerCursor);
             } while (i == 0);
         }
 
@@ -803,6 +812,8 @@ void HandleInputChooseMove(enum BattlerId battler)
                 gMultiUsePlayerCursor = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
             if (B_SHOW_EFFECTIVENESS)
                 MoveSelectionDisplayMoveEffectiveness(CheckTypeEffectiveness(battler, gMultiUsePlayerCursor), battler);
+            if (moveInfo->moves[gMoveSelectionCursor[battler]] == MOVE_JUDGMENT)
+                MoveSelectionDisplayMoveTypeAgainstTarget(battler, gMultiUsePlayerCursor);
 
             gSprites[gBattlerSpriteIds[gMultiUsePlayerCursor]].callback = SpriteCB_ShowAsMoveTarget;
             break;
@@ -1731,6 +1742,25 @@ static void MoveSelectionDisplayPPNumber(enum BattlerId battler)
 
 static void MoveSelectionDisplayMoveType(enum BattlerId battler)
 {
+    struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
+    enum Move move = moveInfo->moves[gMoveSelectionCursor[battler]];
+    enum MoveTarget moveTarget = GetBattlerMoveSelectionTargetType(battler, move);
+    enum BattlerId target = GetDefaultSelectionTarget(battler, moveTarget);
+
+    if ((target >= gBattlersCount || !IsBattlerAlive(target))
+     && target != battler
+     && target != GetPartnerBattler(battler))
+    {
+        enum BattlerId rightFoe = GetBattlerAtPosition(B_POSITION_OPPONENT_RIGHT);
+        if (rightFoe < gBattlersCount && IsBattlerAlive(rightFoe))
+            target = rightFoe;
+    }
+
+    MoveSelectionDisplayMoveTypeAgainstTarget(battler, target);
+}
+
+static void MoveSelectionDisplayMoveTypeAgainstTarget(enum BattlerId battler, enum BattlerId target)
+{
     u8 *txtPtr, *end;
     enum Species speciesId = gBattleMons[battler].species;
     struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
@@ -1761,6 +1791,14 @@ static void MoveSelectionDisplayMoveType(enum BattlerId battler)
         if (speciesId == SPECIES_TERAPAGOS_STELLAR
         || (IsGimmickSelected(battler, GIMMICK_TERA) && speciesId == SPECIES_TERAPAGOS_TERASTAL))
             type = TYPE_STELLAR;
+    }
+    else if (move == MOVE_JUDGMENT)
+    {
+        enum Type judgmentType = GetLegendPlateJudgmentType(battler, target);
+        if (judgmentType != TYPE_NONE)
+            type = judgmentType;
+        else if (P_SHOW_DYNAMIC_TYPES)
+            type = CheckDynamicMoveType(GetBattlerMon(battler), move, battler, MON_IN_BATTLE);
     }
     else if (P_SHOW_DYNAMIC_TYPES) // Non-vanilla changes to battle UI showing dynamic types
     {
