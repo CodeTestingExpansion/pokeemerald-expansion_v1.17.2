@@ -38,6 +38,10 @@ void CreateSwapLineSprites(u8 *spriteIds, u8 count);
 void DestroySwapLineSprites(u8 *spriteIds, u8 count);
 void SetSwapLineSpritesInvisibility(u8 *spriteIds, u8 count, bool8 invisible);
 void UpdateSwapLineSpritesPos(u8 *spriteIds, u8 count, s16 x, u16 y);
+#if I_REGISTERED_ITEMS_MENU
+void CreateSwapLineSprites_RegisteredItemsMenu(u8 *spriteIds, u8 count);
+void LoadListMenuSwapLineGfx_RegisteredItemsMenu(void);
+#endif
 #if QUEST_MENU_TYPE != QUEST_MENU_0
 void ResetAllBgsCoordinatesAndBgCntRegs(void);
 #endif

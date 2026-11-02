@@ -149,6 +149,8 @@
 
 #define NUM_APRICORN_TREE_BYTES ROUND_BITS_TO_BYTES(APRICORN_TREE_COUNT)
 
+#define REGISTERED_ITEMS_MAX 10
+
 // This produces an error at compile-time if expr is zero.
 // It looks like file.c:line: size of array `id' is negative
 #define STATIC_ASSERT(expr, id) typedef char id[(expr) ? 1 : -1];
@@ -699,6 +701,11 @@ struct ItemSlot
     u16 quantity;
 };
 
+struct RegisteredItemSlot
+{
+    u16 itemId;
+};
+
 struct Pokeblock
 {
     u8 color;
@@ -1138,7 +1145,11 @@ struct SaveBlock1
     /*0x238*/ struct Pokemon playerParty[PARTY_SIZE];
     /*0x490*/ u32 money;
     /*0x494*/ u16 coins;
+#if I_REGISTERED_ITEMS_MENU
+    /*0x496*/ u16 registeredItemSelect; // retained for save layout compatibility in list mode
+#else
     /*0x496*/ u16 registeredItem; // registered for use with SELECT button
+#endif
     /*0x498*/ struct ItemSlot pcItems[PC_ITEMS_COUNT];
     /*0x560 -> 0x848 is bag storage*/
     /*0x560*/ struct Bag bag;
@@ -1235,6 +1246,11 @@ struct SaveBlock1
 #if IS_FRLG
     u8 rivalName[PLAYER_NAME_LENGTH + 1];
     struct DaycareMon route5DayCareMon;
+#endif
+#if I_REGISTERED_ITEMS_MENU
+    u8 registeredItemLastSelected:4;
+    u8 registeredItemListCount:4;
+    struct RegisteredItemSlot registeredItems[REGISTERED_ITEMS_MAX];
 #endif
     // sizeof: 0x3???
 };
