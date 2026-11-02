@@ -174,4 +174,12 @@
 #define SM_TIME_NONE    2  // NO CLOCK
 #define SM_TIME         SM_TIME_24H
 
+// Quest menu implementation
+#define QUEST_MENU_0 0 // Disabled
+#define QUEST_MENU_1 1 // Ghoulslash quest menu
+#define QUEST_MENU_2 2 // Unbound quest menu
+#define QUEST_MENU_TYPE QUEST_MENU_2
+#define QUEST_MENU_WRAP_LIST TRUE // Enables wrapping at the ends of Unbound quest lists.
+
+
 #endif // GUARD_CONFIG_OVERWORLD_H

@@ -54,6 +54,9 @@ static u8 ListMenuInitInternal(struct ListMenuTemplate *listMenuTemplate, u16 sc
 static void ListMenuPrintEntries(struct ListMenu *list, u16 startIndex, u16 yOffset, u16 count);
 static void ListMenuDrawCursor(struct ListMenu *list);
 static void ListMenuCallSelectionChangedCallback(struct ListMenu *list, u8 onInit);
+#if QUEST_MENU_TYPE == QUEST_MENU_2 && QUEST_MENU_WRAP_LIST
+static void ListMenuWrapSelection(struct ListMenu *list, bool8 movingDown);
+#endif
 static u8 ListMenuAddCursorObject(struct ListMenu *list, u32 cursorObjId);
 static void Task_ScrollIndicatorArrowPair(u8 taskId);
 static u8 ListMenuAddRedOutlineCursorObject(struct CursorStruct *cursor);
@@ -383,12 +386,27 @@ s32 ListMenu_ProcessInput(u8 listTaskId)
     }
     else if (JOY_REPEAT(DPAD_UP))
     {
+#if QUEST_MENU_TYPE == QUEST_MENU_2 && QUEST_MENU_WRAP_LIST
+        u16 oldPosition = list->scrollOffset + list->selectedRow;
         ListMenuChangeSelection(list, TRUE, 1, FALSE);
+        if (oldPosition == list->scrollOffset + list->selectedRow)
+            ListMenuWrapSelection(list, FALSE);
+#else
+        ListMenuChangeSelection(list, TRUE, 1, FALSE);
+#endif
+
         return LIST_NOTHING_CHOSEN;
     }
     else if (JOY_REPEAT(DPAD_DOWN))
     {
+#if QUEST_MENU_TYPE == QUEST_MENU_2 && QUEST_MENU_WRAP_LIST
+        u16 oldPosition = list->scrollOffset + list->selectedRow;
         ListMenuChangeSelection(list, TRUE, 1, TRUE);
+        if (oldPosition == list->scrollOffset + list->selectedRow)
+            ListMenuWrapSelection(list, TRUE);
+#else
+        ListMenuChangeSelection(list, TRUE, 1, TRUE);
+#endif
         return LIST_NOTHING_CHOSEN;
     }
     else // try to move by one window scroll
@@ -832,6 +850,54 @@ static void ListMenuCallSelectionChangedCallback(struct ListMenu *list, u8 onIni
     if (list->template.moveCursorFunc != NULL)
         list->template.moveCursorFunc(list->template.items[list->scrollOffset + list->selectedRow].id, onInit, list);
 }
+
+#if QUEST_MENU_TYPE == QUEST_MENU_2 && QUEST_MENU_WRAP_LIST
+static void ListMenuWrapSelection(struct ListMenu *list, bool8 movingDown)
+{
+    u16 itemIndex;
+    u16 totalItems = list->template.totalItems;
+    bool8 found = FALSE;
+
+    if (movingDown)
+    {
+        for (itemIndex = 0; itemIndex < totalItems; itemIndex++)
+        {
+            if (list->template.isDynamic || list->template.items[itemIndex].id != LIST_HEADER)
+            {
+                found = TRUE;
+                break;
+            }
+        }
+    }
+    else
+    {
+        for (itemIndex = totalItems; itemIndex > 0; itemIndex--)
+        {
+            if (list->template.isDynamic || list->template.items[itemIndex - 1].id != LIST_HEADER)
+            {
+                itemIndex--;
+                found = TRUE;
+                break;
+            }
+        }
+    }
+
+    if (!found)
+        return;
+
+    if (itemIndex >= list->template.maxShowed)
+        list->scrollOffset = itemIndex - list->template.maxShowed + 1;
+    else
+        list->scrollOffset = 0;
+    list->selectedRow = itemIndex - list->scrollOffset;
+
+    FillWindowPixelBuffer(list->template.windowId, PIXEL_FILL(list->template.fillValue));
+    ListMenuPrintEntries(list, list->scrollOffset, 0, list->template.maxShowed);
+    ListMenuDrawCursor(list);
+    ListMenuCallSelectionChangedCallback(list, FALSE);
+    CopyWindowToVram(list->template.windowId, COPYWIN_GFX);
+}
+#endif
 
 void ListMenuDefaultCursorMoveFunc(s32 itemIndex, bool8 onInit, struct ListMenu *list)
 {

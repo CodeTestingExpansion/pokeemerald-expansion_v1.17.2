@@ -1965,6 +1965,28 @@
 	_dynmultichoice \left, \top, \ignoreBPress, \maxBeforeScroll, \shouldSort, \initialSelected, \callbacks, NULL
 	.endm
 
+	.macro questmenu case:req, questId:req
+	.byte SCR_OP_QUESTMENU
+	.byte \case
+	.byte \questId
+	.endm
+
+	.macro openquestmenu
+	questmenu QUEST_MENU_OPEN, 0
+	.endm
+
+	.macro subquestmenu case:req, parentId:req, childId:req
+	.byte SCR_OP_SUBQUESTMENU
+	.byte \case
+	.2byte \parentId
+	.2byte \childId
+	.endm
+
+	.macro returnqueststate questId:req
+	.byte SCR_OP_RETURNQUESTSTATE
+	.byte \questId
+	.endm
+
 @ Supplementary
 
 	@ Gets the width of the specified message in the Braille font and sets the result to VAR_0x8004.

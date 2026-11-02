@@ -52,6 +52,9 @@
 #include "constants/rgb.h"
 #include "constants/songs.h"
 #include "rtc.h"
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+#include "quests.h"
+#endif
 
 // Menu actions
 enum
@@ -71,6 +74,9 @@ enum
     MENU_ACTION_PYRAMID_BAG,
     MENU_ACTION_DEBUG,
     MENU_ACTION_DEXNAV,
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+    MENU_ACTION_QUEST_MENU,
+#endif
 };
 
 // Save status
@@ -91,7 +97,11 @@ EWRAM_DATA static u8 sStartClockWindowId = 0;
 EWRAM_DATA static u8 sBattlePyramidFloorWindowId = 0;
 EWRAM_DATA static u8 sStartMenuCursorPos = 0;
 EWRAM_DATA static u8 sNumStartMenuActions = 0;
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+EWRAM_DATA static u8 sCurrentStartMenuActions[10] = {0};
+#else
 EWRAM_DATA static u8 sCurrentStartMenuActions[9] = {0};
+#endif
 EWRAM_DATA static s8 sInitStartMenuData[2] = {0};
 
 EWRAM_DATA static u8 (*sSaveDialogCallback)(void) = NULL;
@@ -114,6 +124,9 @@ static bool8 StartMenuBattlePyramidRetireCallback(void);
 static bool8 StartMenuBattlePyramidBagCallback(void);
 static bool8 StartMenuDebugCallback(void);
 static bool8 StartMenuDexNavCallback(void);
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+static bool8 QuestMenuCallback(void);
+#endif
 
 // Menu callbacks
 static bool8 SaveStartCallback(void);
@@ -194,6 +207,9 @@ static const struct WindowTemplate sWindowTemplate_PyramidPeak = {
 
 static const u8 sText_MenuDebug[] = _("DEBUG");
 
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+static const u8 sText_QuestMenu[] = _("QUESTS");
+#endif
 static const struct MenuAction sStartMenuItems[] =
 {
     [MENU_ACTION_POKEDEX]         = {gText_MenuPokedex, {.u8_void = StartMenuPokedexCallback}},
@@ -211,6 +227,9 @@ static const struct MenuAction sStartMenuItems[] =
     [MENU_ACTION_PYRAMID_BAG]     = {gText_MenuBag,     {.u8_void = StartMenuBattlePyramidBagCallback}},
     [MENU_ACTION_DEBUG]           = {sText_MenuDebug,   {.u8_void = StartMenuDebugCallback}},
     [MENU_ACTION_DEXNAV]          = {gText_MenuDexNav,  {.u8_void = StartMenuDexNavCallback}},
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+    [MENU_ACTION_QUEST_MENU]      = {sText_QuestMenu,   {.u8_void = QuestMenuCallback}},
+#endif
 };
 
 static const struct BgTemplate sBgTemplates_LinkBattleSave[] =
@@ -345,6 +364,16 @@ static void BuildNormalStartMenu(void)
         AddStartMenuAction(MENU_ACTION_POKENAV);
 
     AddStartMenuAction(MENU_ACTION_PLAYER);
+
+#if QUEST_MENU_TYPE == QUEST_MENU_1
+    if (FlagGet(FLAG_SYS_QUEST_MENU_GET) || FlagGet(FLAG_QUEST_MENU_ACTIVE))
+#elif QUEST_MENU_TYPE == QUEST_MENU_2
+    if (FlagGet(FLAG_SYS_QUEST_MENU_GET))
+#endif
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+        AddStartMenuAction(MENU_ACTION_QUEST_MENU);
+#endif
+
     AddStartMenuAction(MENU_ACTION_SAVE);
     AddStartMenuAction(MENU_ACTION_OPTION);
     AddStartMenuAction(MENU_ACTION_EXIT);
@@ -1656,3 +1685,15 @@ void Script_ForceSaveGame(struct ScriptContext *ctx)
     gMenuCallback = SaveCallback;
     sSaveDialogCallback = SaveSavingMessageCallback;
 }
+
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+static bool8 QuestMenuCallback(void)
+{
+#if QUEST_MENU_TYPE == QUEST_MENU_1
+    CreateTask(Task_OpenQuestMenuFromStartMenu, 0);
+#elif QUEST_MENU_TYPE == QUEST_MENU_2
+    CreateTask(Task_QuestMenu_OpenFromStartMenu, 0);
+#endif
+    return TRUE;
+}
+#endif

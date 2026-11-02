@@ -1,4 +1,7 @@
 #include "global.h"
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+#include "quests.h"
+#endif
 #include "clock.h"
 #include "new_game.h"
 #include "random.h"
@@ -236,6 +239,14 @@ void NewGameInitData(void)
     ResetDexNav();
     ClearFollowerNPCData();
     gSaveBlock3Ptr->followerIndex = OW_FOLLOWER_NOT_SET;
+
+#if QUEST_MENU_TYPE == QUEST_MENU_1
+    memset(gSaveBlock2Ptr->unlockedQuests, 0, sizeof(gSaveBlock2Ptr->unlockedQuests));
+    memset(gSaveBlock2Ptr->completedQuests, 0, sizeof(gSaveBlock2Ptr->completedQuests));
+    gSaveBlock2Ptr->activeQuest = 0;
+#elif QUEST_MENU_TYPE == QUEST_MENU_2
+    QuestMenu_ResetMenuSaveData();
+#endif
 }
 
 static void ResetMiniGamesRecords(void)

@@ -64,6 +64,9 @@
 #include "malloc.h"
 #include "battle.h"
 #include "constants/comparison_operators.h"
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+#include "quests.h"
+#endif
 #include "constants/event_objects.h"
 #include "constants/map_types.h"
 #include "constants/party_menu.h"
@@ -3407,4 +3410,180 @@ bool8 ScrCmd_normalmsg(struct ScriptContext *ctx)
 
     gMsgIsSignPost = FALSE;
     return FALSE;
+}
+
+bool8 ScrCmd_questmenu(struct ScriptContext *ctx)
+{
+#if QUEST_MENU_TYPE == QUEST_MENU_1
+    u8 caseId = ScriptReadByte(ctx);
+    u8 questId = VarGet(ScriptReadByte(ctx));
+
+    switch (caseId)
+    {
+    case QUEST_MENU_OPEN:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_HARDWARE);
+        SetQuestMenuActive();
+        BeginNormalPaletteFade(0xFFFFFFFF, 2, 16, 0, 0);
+        QuestMenu_Init(0, CB2_ReturnToFieldContinueScriptPlayMapMusic);
+        ScriptContext_Stop();
+        return TRUE;
+    case QUEST_MENU_UNLOCK_QUEST:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        GetSetQuestFlag(questId, FLAG_SET_UNLOCKED);
+        break;
+    case QUEST_MENU_COMPLETE_QUEST:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        GetSetQuestFlag(questId, FLAG_SET_COMPLETED);
+        break;
+    case QUEST_MENU_SET_ACTIVE:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        SetActiveQuest(questId);
+        break;
+    case QUEST_MENU_RESET_ACTIVE:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        ResetActiveQuest();
+        break;
+    case QUEST_MENU_BUFFER_QUEST_NAME:
+        Script_RequestEffects(SCREFF_V1);
+        CopyQuestName(gStringVar1, questId);
+        break;
+    case QUEST_MENU_GET_ACTIVE_QUEST:
+        Script_RequestEffects(SCREFF_V1);
+        gSpecialVar_Result = GetActiveQuestIndex();
+        break;
+    case QUEST_MENU_CHECK_UNLOCKED:
+        Script_RequestEffects(SCREFF_V1);
+        if (GetSetQuestFlag(questId, FLAG_GET_UNLOCKED))
+            gSpecialVar_Result = TRUE;
+        else
+            gSpecialVar_Result = FALSE;
+        break;
+    case QUEST_MENU_CHECK_COMPLETE:
+        Script_RequestEffects(SCREFF_V1);
+        if (GetSetQuestFlag(questId, FLAG_GET_COMPLETED))
+            gSpecialVar_Result = TRUE;
+        else
+            gSpecialVar_Result = FALSE;
+        break;
+    default:
+        return FALSE;
+    }
+
+    return FALSE;
+#elif QUEST_MENU_TYPE == QUEST_MENU_2
+    u8 caseId = ScriptReadByte(ctx);
+    u8 questId = VarGet(ScriptReadByte(ctx));
+
+    switch (caseId)
+    {
+    case QUEST_MENU_OPEN:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_HARDWARE);
+        BeginNormalPaletteFade(0xFFFFFFFF, 2, 16, 0, 0);
+        QuestMenu_Init(0, CB2_ReturnToFieldContinueScriptPlayMapMusic);
+        ScriptContext_Stop();
+        return TRUE;
+    case QUEST_MENU_UNLOCK_QUEST:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        QuestMenu_GetSetQuestState(questId, FLAG_SET_UNLOCKED);
+        break;
+    case QUEST_MENU_SET_ACTIVE:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        QuestMenu_GetSetQuestState(questId, FLAG_SET_UNLOCKED);
+        QuestMenu_GetSetQuestState(questId, FLAG_SET_ACTIVE);
+        break;
+    case QUEST_MENU_SET_REWARD:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        QuestMenu_GetSetQuestState(questId, FLAG_SET_UNLOCKED);
+        QuestMenu_GetSetQuestState(questId, FLAG_SET_REWARD);
+        QuestMenu_GetSetQuestState(questId, FLAG_REMOVE_ACTIVE);
+        break;
+    case QUEST_MENU_COMPLETE_QUEST:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        QuestMenu_GetSetQuestState(questId, FLAG_SET_UNLOCKED);
+        QuestMenu_GetSetQuestState(questId, FLAG_SET_COMPLETED);
+        QuestMenu_GetSetQuestState(questId, FLAG_REMOVE_ACTIVE);
+        QuestMenu_GetSetQuestState(questId, FLAG_REMOVE_REWARD);
+        break;
+    case QUEST_MENU_CHECK_UNLOCKED:
+    case QUEST_MENU_CHECK_INACTIVE:
+    case QUEST_MENU_CHECK_ACTIVE:
+    case QUEST_MENU_CHECK_REWARD:
+    case QUEST_MENU_CHECK_COMPLETE:
+        Script_RequestEffects(SCREFF_V1);
+        gSpecialVar_Result = QuestMenu_GetSetQuestState(questId, caseId - QUEST_MENU_CHECK_UNLOCKED);
+        break;
+    case QUEST_MENU_BUFFER_QUEST_NAME:
+        Script_RequestEffects(SCREFF_V1);
+        QuestMenu_CopyQuestName(gStringVar1, questId);
+        break;
+    default:
+        return FALSE;
+    }
+
+    return FALSE;
+#else
+    Script_RequestEffects(SCREFF_V1);
+    ScriptReadByte(ctx);
+    ScriptReadByte(ctx);
+    return FALSE;
+#endif
+}
+
+bool8 ScrCmd_subquestmenu(struct ScriptContext *ctx)
+{
+#if QUEST_MENU_TYPE == QUEST_MENU_2
+    u8 caseId = ScriptReadByte(ctx);
+    u8 parentId = VarGet(ScriptReadHalfword(ctx));
+    u8 childId = VarGet(ScriptReadHalfword(ctx));
+
+    switch (caseId)
+    {
+    case QUEST_MENU_COMPLETE_QUEST:
+        Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        QuestMenu_GetSetSubquestState(parentId, FLAG_SET_COMPLETED, childId);
+        break;
+    case QUEST_MENU_CHECK_COMPLETE:
+        Script_RequestEffects(SCREFF_V1);
+        gSpecialVar_Result = QuestMenu_GetSetSubquestState(parentId, FLAG_GET_COMPLETED, childId);
+        break;
+    case QUEST_MENU_BUFFER_QUEST_NAME:
+        Script_RequestEffects(SCREFF_V1);
+        QuestMenu_CopySubquestName(gStringVar1, parentId, childId);
+        break;
+    default:
+        return FALSE;
+    }
+
+    return FALSE;
+#else
+    Script_RequestEffects(SCREFF_V1);
+    ScriptReadByte(ctx);
+    ScriptReadHalfword(ctx);
+    ScriptReadHalfword(ctx);
+    return FALSE;
+#endif
+}
+
+bool8 ScrCmd_returnqueststate(struct ScriptContext *ctx)
+{
+#if QUEST_MENU_TYPE == QUEST_MENU_2
+    u8 questId = VarGet(ScriptReadByte(ctx));
+    u8 caseId;
+
+    Script_RequestEffects(SCREFF_V1);
+    for (caseId = FLAG_GET_INACTIVE; caseId <= FLAG_GET_COMPLETED; caseId++)
+    {
+        if (QuestMenu_GetSetQuestState(questId, caseId))
+        {
+            gSpecialVar_Result = caseId;
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+#else
+    Script_RequestEffects(SCREFF_V1);
+    ScriptReadByte(ctx);
+    return FALSE;
+#endif
 }

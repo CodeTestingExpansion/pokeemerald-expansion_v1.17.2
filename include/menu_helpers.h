@@ -1,6 +1,7 @@
 #ifndef GUARD_MENU_HELPERS_H
 #define GUARD_MENU_HELPERS_H
 
+#include "config/overworld.h"
 #include "task.h"
 #include "window.h"
 
@@ -37,5 +38,8 @@ void CreateSwapLineSprites(u8 *spriteIds, u8 count);
 void DestroySwapLineSprites(u8 *spriteIds, u8 count);
 void SetSwapLineSpritesInvisibility(u8 *spriteIds, u8 count, bool8 invisible);
 void UpdateSwapLineSpritesPos(u8 *spriteIds, u8 count, s16 x, u16 y);
+#if QUEST_MENU_TYPE != QUEST_MENU_0
+void ResetAllBgsCoordinatesAndBgCntRegs(void);
+#endif
 
 #endif //GUARD_MENU_HELPERS_H
