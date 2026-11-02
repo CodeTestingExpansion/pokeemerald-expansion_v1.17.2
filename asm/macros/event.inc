@@ -3031,3 +3031,12 @@
 	getbraillestringwidth \text
 	call EventScript_BrailleCursorWaitButton
 	.endm
+
+	@ Opens the bag in the specified pocket and lets the player choose an item.
+	@ The chosen item is stored in VAR_ITEM_ID.
+	.macro chooseitem pocket:req
+	setvar VAR_TEMP_1, \pocket
+	fadescreen FADE_TO_BLACK
+	special ChooseItemFromBag
+	waitstate
+	.endm

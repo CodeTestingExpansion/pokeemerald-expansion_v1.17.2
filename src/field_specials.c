@@ -4368,6 +4368,14 @@ u8 Script_TryGainNewFanFromCounter(void)
     return TryGainNewFanFromCounter(gSpecialVar_0x8004);
 }
 
+void ChooseItemFromBag(void)
+{
+    u16 pocket = VarGet(VAR_TEMP_1);
+
+    if (pocket < POCKETS_COUNT)
+        GoToBagMenu(ITEMMENULOCATION_CHOOSE_ITEM, pocket, CB2_ReturnToFieldContinueScript);
+}
+
 void TrySkyBattle(void)
 {
     int i;
