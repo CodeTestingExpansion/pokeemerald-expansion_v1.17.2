@@ -2292,28 +2292,33 @@ static void Task_ChangeSummaryMon(u8 taskId)
 static s8 AdvanceMonIndex(s8 delta)
 {
     struct Pokemon *mon = sMonSummaryScreen->monList.mons;
+    u8 numMons = sMonSummaryScreen->maxMonIndex + 1;
+    s16 step = delta % numMons;
+    u8 i;
+    s8 index;
 
-    if (sMonSummaryScreen->currPageIndex == PSS_PAGE_INFO)
-    {
-        if (delta == -1 && sMonSummaryScreen->curMonIndex == 0)
-            return -1;
-        else if (delta == 1 && sMonSummaryScreen->curMonIndex >= sMonSummaryScreen->maxMonIndex)
-            return -1;
-        else
-            return sMonSummaryScreen->curMonIndex + delta;
-    }
-    else
-    {
-        s8 index = sMonSummaryScreen->curMonIndex;
+    if (step < 0)
+        step += numMons;
 
-        do
+    index = (sMonSummaryScreen->curMonIndex + step) % numMons;
+
+    // Skip over any Eggs unless on the Info Page.
+    if (sMonSummaryScreen->currPageIndex != PSS_PAGE_INFO)
+    {
+        for (i = 0; i < numMons; i++)
         {
-            index += delta;
-            if (index < 0 || index > sMonSummaryScreen->maxMonIndex)
-                return -1;
-        } while (GetMonData(&mon[index], MON_DATA_IS_EGG));
-        return index;
+            if (!GetMonData(&mon[index], MON_DATA_IS_EGG))
+                break;
+            index = (index + step) % numMons;
+        }
+        if (i == numMons)
+            return -1;
     }
+
+    // Avoid "scrolling" to the same Pokemon.
+    if (index == sMonSummaryScreen->curMonIndex)
+        return -1;
+    return index;
 }
 
 static s8 AdvanceMultiBattleMonIndex(s8 delta)
