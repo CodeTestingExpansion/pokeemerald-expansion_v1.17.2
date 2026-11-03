@@ -1,3 +1,4 @@
+#include "config/party_menu.h"
 #include "global.h"
 #include "graphics.h"
 
@@ -1712,9 +1713,15 @@ const u32 gBattleAnimBgImage_Swamp[] = INCGFX_U32("graphics/battle_anims/backgro
 const u16 gBattleAnimBGPalette_Swamp[] = INCGFX_U16("graphics/battle_anims/backgrounds/swampswizzle.pal", ".gbapal");
 const u32 gBattleAnimBgTilemap_Swamp[] = INCGFX_U32("graphics/battle_anims/backgrounds/swampswizzle.bin", ".smolTM");
 
+#if PARTY_MENU_GEN5ISH_LAYOUT
+const u32 gPartyMenuBg_Gfx[] = INCGFX_U32("graphics/party_menu/bg_gen5ish.png", ".4bpp.smol", "-num_tiles 62 -Wnum_tiles");
+const u16 gPartyMenuBg_Pal[] = INCGFX_U16("graphics/party_menu/bg_gen5ish.png", ".gbapal");
+const u32 gPartyMenuBg_Tilemap[] = INCGFX_U32("graphics/party_menu/bg_gen5ish.bin", ".smolTM");
+#else
 const u32 gPartyMenuBg_Gfx[] = INCGFX_U32("graphics/party_menu/bg.png", ".4bpp.smol", "-num_tiles 62 -Wnum_tiles");
 const u16 gPartyMenuBg_Pal[] = INCGFX_U16("graphics/party_menu/bg.png", ".gbapal");
 const u32 gPartyMenuBg_Tilemap[] = INCGFX_U32("graphics/party_menu/bg.bin", ".smolTM");
+#endif
 
 const u32 gPartyMenuPokeball_Gfx[] = INCGFX_U32("graphics/party_menu/pokeball.png", ".4bpp.smol");
 const u32 gPartyMenuPokeballSmall_Gfx[] = INCGFX_U32("graphics/party_menu/pokeball_small.png", ".4bpp.smol"); //unused

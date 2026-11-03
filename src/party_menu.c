@@ -1,3 +1,4 @@
+#include "config/party_menu.h"
 #include "global.h"
 #include "malloc.h"
 #include "battle.h"
@@ -159,6 +160,9 @@ enum {
 enum {
     PARTY_BOX_LEFT_COLUMN,
     PARTY_BOX_RIGHT_COLUMN,
+#if PARTY_MENU_GEN5ISH_LAYOUT
+    PARTY_BOX_EQUAL_COLUMN,
+#endif
 };
 
 enum {
@@ -507,6 +511,9 @@ static void Task_BattlePyramidChooseMonHeldItems(u8);
 static void ShiftMoveSlot(struct BoxPokemon *, u8, u8);
 static void BlitBitmapToPartyWindow_LeftColumn(u8, u8, u8, u8, u8, bool8);
 static void BlitBitmapToPartyWindow_RightColumn(u8, u8, u8, u8, u8, bool8);
+#if PARTY_MENU_GEN5ISH_LAYOUT
+static void BlitBitmapToPartyWindow_Equal(u8, u8, u8, u8, u8, bool8);
+#endif
 static void CursorCb_Summary(u8);
 static void CursorCb_WonderTradeInitiate(u8);
 static void CursorCb_WonderTradeItem(u8);
@@ -1050,8 +1057,20 @@ static void LoadPartyMenuBoxes(enum PartyMenuLayout layout)
         sPartyMenuBoxes[i].statusSpriteId = SPRITE_NONE;
     }
 
-    // The first party mon goes in the left column
+#if PARTY_MENU_GEN5ISH_LAYOUT
+    if (layout == PARTY_LAYOUT_SINGLE)
+    {
+        for (i = 0; i < PARTY_SIZE; i++)
+            sPartyMenuBoxes[i].infoRects = &sPartyBoxInfoRects[PARTY_BOX_EQUAL_COLUMN];
+    }
+    else
+    {
+        // The first party mon goes in the left column
+        sPartyMenuBoxes[0].infoRects = &sPartyBoxInfoRects[PARTY_BOX_LEFT_COLUMN];
+    }
+#else
     sPartyMenuBoxes[0].infoRects = &sPartyBoxInfoRects[PARTY_BOX_LEFT_COLUMN];
+#endif
 
     if (layout == PARTY_LAYOUT_MULTI_SHOWCASE)
         sPartyMenuBoxes[3].infoRects = &sPartyBoxInfoRects[PARTY_BOX_LEFT_COLUMN];
@@ -1929,6 +1948,59 @@ static void UpdateCurrentPartySelection(s8 *slotPtr, s8 movementDir)
 static void UpdatePartySelectionSingleLayout(s8 *slotPtr, s8 movementDir)
 {
     enum BattleTrainer partyTrainer = (gPartyMenu.layout == PARTY_LAYOUT_MULTI_FULL_PARTNER) ? B_TRAINER_PARTNER : B_TRAINER_PLAYER;
+
+#if PARTY_MENU_GEN5ISH_LAYOUT
+    if (gPartyMenu.layout == PARTY_LAYOUT_SINGLE)
+    {
+        switch (movementDir)
+        {
+        case MENU_DIR_UP:
+            if (*slotPtr == 0)
+                *slotPtr = PARTY_SIZE + 1;
+            else if (*slotPtr == PARTY_SIZE)
+                *slotPtr = gPartiesCount[partyTrainer] - 1;
+            else if (*slotPtr == PARTY_SIZE + 1)
+            {
+                if (sPartyMenuInternal->chooseHalf)
+                    *slotPtr = PARTY_SIZE;
+                else
+                    *slotPtr = gPartiesCount[partyTrainer] - 1;
+            }
+            else
+                (*slotPtr)--;
+            break;
+        case MENU_DIR_DOWN:
+            if (*slotPtr == PARTY_SIZE + 1)
+                *slotPtr = 0;
+            else if (*slotPtr == PARTY_SIZE)
+                *slotPtr = PARTY_SIZE + 1;
+            else if (*slotPtr == gPartiesCount[partyTrainer] - 1)
+            {
+                if (sPartyMenuInternal->chooseHalf)
+                    *slotPtr = PARTY_SIZE;
+                else
+                    *slotPtr = PARTY_SIZE + 1;
+            }
+            else
+                (*slotPtr)++;
+            break;
+        case MENU_DIR_RIGHT:
+            if (gPartiesCount[partyTrainer] != 1
+             && *slotPtr >= 0
+             && *slotPtr < gPartiesCount[partyTrainer]
+             && *slotPtr % 2 == 0
+             && *slotPtr + 1 < gPartiesCount[partyTrainer])
+                (*slotPtr)++;
+            break;
+        case MENU_DIR_LEFT:
+            if (*slotPtr > 0 && *slotPtr < gPartiesCount[partyTrainer] && *slotPtr % 2 == 1)
+                (*slotPtr)--;
+            break;
+        }
+        return;
+    }
+#endif
+
     // PARTY_SIZE + 1 is Cancel, PARTY_SIZE is Confirm
     switch (movementDir)
     {
@@ -2470,6 +2542,13 @@ static void InitPartyMenuWindows(enum PartyMenuLayout layout)
 {
     switch (layout)
     {
+    case PARTY_LAYOUT_SINGLE:
+#if PARTY_MENU_GEN5ISH_LAYOUT
+        InitWindows(sSinglePartyMenuWindowTemplate_Equal);
+#else
+        InitWindows(sSinglePartyMenuWindowTemplate);
+#endif
+        break;
     case PARTY_LAYOUT_MULTI_SHOWCASE:
         InitWindows(sShowcaseMultiPartyMenuWindowTemplate);
         break;
@@ -2509,18 +2588,39 @@ static void CreateCancelConfirmWindows(bool8 chooseHalf)
     {
         if (chooseHalf == TRUE)
         {
+#if PARTY_MENU_GEN5ISH_LAYOUT
+            if (gPartyMenu.layout == PARTY_LAYOUT_SINGLE)
+                confirmWindowId = AddWindow(&sConfirmButtonWindowTemplate_equal);
+            else
+                confirmWindowId = AddWindow(&sConfirmButtonWindowTemplate);
+#else
             confirmWindowId = AddWindow(&sConfirmButtonWindowTemplate);
+#endif
             FillWindowPixelBuffer(confirmWindowId, PIXEL_FILL(0));
             mainOffset = GetStringCenterAlignXOffset(FONT_SMALL, gMenuText_Confirm, 48);
             AddTextPrinterParameterized4(confirmWindowId, FONT_SMALL, mainOffset, 1, 0, 0, sFontColorTable[0], TEXT_SKIP_DRAW, gMenuText_Confirm);
             PutWindowTilemap(confirmWindowId);
             CopyWindowToVram(confirmWindowId, COPYWIN_GFX);
+#if PARTY_MENU_GEN5ISH_LAYOUT
+            if (gPartyMenu.layout == PARTY_LAYOUT_SINGLE)
+                cancelWindowId = AddWindow(&sMultiCancelButtonWindowTemplate_equal);
+            else
+                cancelWindowId = AddWindow(&sMultiCancelButtonWindowTemplate);
+#else
             cancelWindowId = AddWindow(&sMultiCancelButtonWindowTemplate);
+#endif
             offset = 0;
         }
         else
         {
+#if PARTY_MENU_GEN5ISH_LAYOUT
+            if (gPartyMenu.layout == PARTY_LAYOUT_SINGLE)
+                cancelWindowId = AddWindow(&sCancelButtonWindowTemplate_equal);
+            else
+                cancelWindowId = AddWindow(&sCancelButtonWindowTemplate);
+#else
             cancelWindowId = AddWindow(&sCancelButtonWindowTemplate);
+#endif
             offset = 3;
         }
         FillWindowPixelBuffer(cancelWindowId, PIXEL_FILL(0));
@@ -2590,9 +2690,32 @@ static void BlitBitmapToPartyWindow_RightColumn(u8 windowId, u8 x, u8 y, u8 widt
         BlitBitmapToPartyWindow(windowId, sSlotTilemap_WideNoHP, 18, x, y, width, height);
 }
 
+#if PARTY_MENU_GEN5ISH_LAYOUT
+static void BlitBitmapToPartyWindow_Equal(u8 windowId, u8 x, u8 y, u8 width, u8 height, bool8 isEgg)
+{
+    if (width == 0 && height == 0)
+    {
+        width = 14;
+        height = 5;
+    }
+
+    if (isEgg == FALSE)
+        BlitBitmapToPartyWindow(windowId, sEqualMainSlotTileNums, 14, x, y, width, height);
+    else
+        BlitBitmapToPartyWindow(windowId, sEqualMainSlotTileNums_Egg, 14, x, y, width, height);
+}
+#endif
+
 static void DrawEmptySlot(u8 windowId)
 {
+#if PARTY_MENU_GEN5ISH_LAYOUT
+    if (gPartyMenu.layout == PARTY_LAYOUT_SINGLE)
+        BlitBitmapToPartyWindow(windowId, sEqualEmptySlotTileNums, 14, 0, 0, 14, 5);
+    else
+        BlitBitmapToPartyWindow(windowId, sSlotTilemap_WideEmpty, 18, 0, 0, 18, 3);
+#else
     BlitBitmapToPartyWindow(windowId, sSlotTilemap_WideEmpty, 18, 0, 0, 18, 3);
+#endif
 }
 
 #define LOAD_PARTY_BOX_PAL(paletteIds, paletteOffsets)                                                    \
@@ -3629,7 +3752,13 @@ static void SwitchSelectedMons(u8 taskId)
         tSlot1Width = GetWindowAttribute(windowIds[0], WINDOW_WIDTH);
         tSlot1Height = GetWindowAttribute(windowIds[0], WINDOW_HEIGHT);
         tSlot1Offset = 0;
+#if PARTY_MENU_GEN5ISH_LAYOUT
+        if (gPartyMenu.layout == PARTY_LAYOUT_SINGLE)
+            tSlot1SlideDir = (gPartyMenu.slotId % 2 == 0) ? -1 : 1;
+        else if (tSlot1Width == 10)
+#else
         if (tSlot1Width == 10)
+#endif
             tSlot1SlideDir = -1;
         else
             tSlot1SlideDir = 1;
@@ -3639,7 +3768,13 @@ static void SwitchSelectedMons(u8 taskId)
         tSlot2Width = GetWindowAttribute(windowIds[1], WINDOW_WIDTH);
         tSlot2Height = GetWindowAttribute(windowIds[1], WINDOW_HEIGHT);
         tSlot2Offset = 0;
+#if PARTY_MENU_GEN5ISH_LAYOUT
+        if (gPartyMenu.layout == PARTY_LAYOUT_SINGLE)
+            tSlot2SlideDir = (gPartyMenu.slotId2 % 2 == 0) ? -1 : 1;
+        else if (tSlot2Width == 10)
+#else
         if (tSlot2Width == 10)
+#endif
             tSlot2SlideDir = -1;
         else
             tSlot2SlideDir = 1;
@@ -3728,7 +3863,11 @@ static void SlidePartyMenuBoxOneStep(u8 taskId)
 static void Task_SlideSelectedSlotsOffscreen(u8 taskId)
 {
     s16 *data = gTasks[taskId].data;
+#if PARTY_MENU_GEN5ISH_LAYOUT
+    s16 slidingSlotPositions[2];
+#else
     u16 slidingSlotPositions[2];
+#endif
 
     SlidePartyMenuBoxOneStep(taskId);
     SlidePartyMenuBoxSpritesOneStep(taskId);
@@ -3737,8 +3876,12 @@ static void Task_SlideSelectedSlotsOffscreen(u8 taskId)
     slidingSlotPositions[0] = tSlot1Left + tSlot1Offset;
     slidingSlotPositions[1] = tSlot2Left + tSlot2Offset;
 
-    // Both slots have slid offscreen
+#if PARTY_MENU_GEN5ISH_LAYOUT
+    if ((slidingSlotPositions[0] + tSlot1Width <= 0 || slidingSlotPositions[0] >= 32)
+     && (slidingSlotPositions[1] + tSlot2Width <= 0 || slidingSlotPositions[1] >= 32))
+#else
     if (slidingSlotPositions[0] > 33 && slidingSlotPositions[1] > 33)
+#endif
     {
         tSlot1SlideDir *= -1;
         tSlot2SlideDir *= -1;
