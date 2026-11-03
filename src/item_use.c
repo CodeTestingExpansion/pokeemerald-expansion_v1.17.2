@@ -42,6 +42,9 @@
 #include "string_util.h"
 #include "task.h"
 #include "text.h"
+#if I_TM_CASE
+#include "tm_case.h"
+#endif
 #include "vs_seeker.h"
 #include "constants/event_bg.h"
 #include "constants/event_objects.h"
@@ -963,6 +966,42 @@ static void UseTMHM(u8 taskId)
     gItemUseCB = ItemUseCB_TMHM;
     SetUpItemUseCallback(taskId);
 }
+
+#if I_TM_CASE
+static void CB2_OpenTMCaseOnField(void)
+{
+    InitTMCase(0, CB2_BagMenuFromStartMenu, 0);
+}
+
+static void Task_InitTMCaseFromField(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        CleanupOverworldWindowsAndTilemaps();
+        InitTMCase(0, CB2_ReturnToField, 1);
+        DestroyTask(taskId);
+    }
+}
+
+void ItemUseOutOfBattle_TmCase(u8 taskId)
+{
+    if (MenuHelpers_IsLinkActive())
+    {
+        DisplayDadsAdviceCannotUseItemMessage(taskId, gTasks[taskId].tUsingRegisteredKeyItem);
+    }
+    else if (!gTasks[taskId].tUsingRegisteredKeyItem)
+    {
+        gBagMenu->newScreenCallback = CB2_OpenTMCaseOnField;
+        Task_FadeAndCloseBagMenu(taskId);
+    }
+    else
+    {
+        gFieldCallback = FieldCB_ReturnToFieldNoScript;
+        FadeScreen(FADE_TO_BLACK, 0);
+        gTasks[taskId].func = Task_InitTMCaseFromField;
+    }
+}
+#endif
 
 static void RemoveUsedItem(void)
 {

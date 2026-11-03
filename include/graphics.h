@@ -3465,4 +3465,17 @@ extern const u16 gItemIconPalette_LegendPlate[];
 extern const u32 gItemIcon_BlankPlate[];
 extern const u16 gItemIconPalette_BlankPlate[];
 
+#if I_TM_CASE
+extern const u32 gTMCaseBackgroundTiles[];
+extern const u32 gTMCaseBackgroundTilemap[];
+extern const u32 gTMCaseSecondaryTilemap[];
+extern const u32 gTMCaseMaleBackgroundPalette[];
+extern const u32 gTMCaseFemaleBackgroundPalette[];
+extern const u32 gTMCaseItemSprites[];
+extern const u32 gTMCaseMoveTypePalettes[];
+extern const u32 gTMCaseMoveTypePaletteExtra[];
+extern const u8 gTMCaseHMBadge[];
+extern const u16 gTMCaseMainWindowPalette[];
+#endif
+
 #endif //GUARD_GRAPHICS_H

@@ -2469,4 +2469,10 @@ extern const u8 gText_SubQuest2_Name8[];
 extern const u8 gText_SubQuest2_Name9[];
 #endif // QUEST_MENU_TYPE == QUEST_MENU_2
 
+extern const u8 gText_TMCase[];
+extern const u8 gText_Close[];
+extern const u8 gText_TMCaseWillBePutAway[];
+extern const u8 gText_FontSmall[];
+extern const u8 gText_FontShort[];
+
 #endif // GUARD_STRINGS_H

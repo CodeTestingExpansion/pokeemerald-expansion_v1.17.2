@@ -25,6 +25,7 @@
 
 // TM config
 #define I_REUSABLE_TMS          TRUE       // In Gens5-8, TMs are reusable. Setting this to TRUE will make all vanilla TMs reusable, though they can also be cherry-picked by setting their importance to 1.
+#define I_TM_CASE               TRUE       // If TRUE, TMs and HMs are accessed through the TM Case instead of the bag pocket.
 
 // Exp. Share config
 // To use this feature, replace the 0 with the flag ID you're assigning it to.

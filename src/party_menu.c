@@ -66,6 +66,9 @@
 #include "task.h"
 #include "text.h"
 #include "text_window.h"
+#if I_TM_CASE
+#include "tm_case.h"
+#endif
 #include "trade.h"
 #include "union_room.h"
 #include "window.h"
@@ -2455,6 +2458,13 @@ static enum CanMoveBeLearned CanTeachMove(struct Pokemon *mon, enum Move move)
     else
         return CAN_LEARN_MOVE;
 }
+
+#if I_TM_CASE
+bool8 CanMonLearnMove(struct Pokemon *mon, enum Move move)
+{
+    return CanTeachMove(mon, move) == CAN_LEARN_MOVE;
+}
+#endif
 
 static void InitPartyMenuWindows(enum PartyMenuLayout layout)
 {
@@ -5143,6 +5153,32 @@ void CB2_ShowPartyMenuForItemUse(void)
 
     InitPartyMenu(menuType, partyLayout, PARTY_ACTION_USE_ITEM, TRUE, msgId, task, callback);
 }
+
+#if I_TM_CASE
+static void CB2_OpenTMCaseOnField(void)
+{
+    InitTMCase(0, CB2_BagMenuFromStartMenu, 0);
+}
+
+void CB2_ShowPartyMenuForItemUseTMCase(void)
+{
+    u8 partyLayout;
+    u8 menuType;
+
+    if (gMain.inBattle)
+    {
+        menuType = PARTY_MENU_TYPE_IN_BATTLE;
+        partyLayout = GetPartyLayoutFromBattleType();
+    }
+    else
+    {
+        menuType = PARTY_MENU_TYPE_FIELD;
+        partyLayout = PARTY_LAYOUT_SINGLE;
+    }
+
+    InitPartyMenu(menuType, partyLayout, PARTY_ACTION_USE_ITEM, TRUE, PARTY_MSG_TEACH_WHICH_MON, Task_HandleChooseMonInput, CB2_OpenTMCaseOnField);
+}
+#endif
 
 static void CB2_ReturnToBagMenu(void)
 {

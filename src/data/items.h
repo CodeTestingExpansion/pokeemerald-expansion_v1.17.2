@@ -14240,7 +14240,11 @@ const struct ItemInfo gItemsInfo[] =
         .importance = 1,
         .pocket = POCKET_KEY_ITEMS,
         .type = ITEM_USE_BAG_MENU,
+#if I_TM_CASE
+        .fieldUseFunc = ItemUseOutOfBattle_TmCase,
+#else
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+#endif
         .iconPic = gItemIcon_TMCase,
         .iconPalette = gItemIconPalette_TMCase,
     },

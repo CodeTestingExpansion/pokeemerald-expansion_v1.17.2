@@ -627,6 +627,25 @@ static EWRAM_DATA struct ListBuffer1 *sListBuffer1 = 0;
 static EWRAM_DATA struct ListBuffer2 *sListBuffer2 = 0;
 EWRAM_DATA enum Item gSpecialVar_ItemId = 0;
 static EWRAM_DATA struct TempWallyBag *sTempWallyBag = 0;
+
+static bool8 ShouldHideTMHMPocket(void)
+{
+#if I_TM_CASE
+    if (CheckBagHasItem(ITEM_TM_CASE, 1))
+        return TRUE;
+
+    for (u32 i = 0; i < gBagPockets[POCKET_TM_HM].capacity; i++)
+    {
+        if (GetBagItemId(POCKET_TM_HM, i) != ITEM_NONE)
+            return FALSE;
+    }
+
+    return TRUE;
+#else
+    return FALSE;
+#endif
+}
+
 void ResetBagScrollPositions(void)
 {
     gBagPosition.pocket = POCKET_ITEMS;
@@ -701,6 +720,10 @@ void QuizLadyOpenBagMenu(void)
 
 void GoToBagMenu(u8 location, u8 pocket, MainCallback exitCallback)
 {
+#if I_TM_CASE
+    u32 i;
+#endif
+
     gBagMenu = AllocZeroed(sizeof(*gBagMenu));
     if (gBagMenu == NULL)
     {
@@ -709,12 +732,27 @@ void GoToBagMenu(u8 location, u8 pocket, MainCallback exitCallback)
     }
     else
     {
+#if I_TM_CASE
+        if (!CheckBagHasItem(ITEM_TM_CASE, 1))
+        {
+            for (i = 0; i < gBagPockets[POCKET_TM_HM].capacity; i++)
+            {
+                if (GetBagItemId(POCKET_TM_HM, i) != ITEM_NONE)
+                {
+                    AddBagItem(ITEM_TM_CASE, 1);
+                    break;
+                }
+            }
+        }
+#endif
         if (location != ITEMMENULOCATION_LAST)
             gBagPosition.location = location;
         if (exitCallback)
             gBagPosition.exitCallback = exitCallback;
         if (pocket < POCKETS_COUNT)
             gBagPosition.pocket = pocket;
+        if (gBagPosition.pocket == POCKET_TM_HM && ShouldHideTMHMPocket())
+            gBagPosition.pocket = POCKET_BERRIES;
         if (gBagPosition.location == ITEMMENULOCATION_BERRY_TREE
          || gBagPosition.location == ITEMMENULOCATION_BERRY_BLENDER_CRUSH
          || gBagPosition.location == ITEMMENULOCATION_BERRY_TREE_MULCH
@@ -832,7 +870,11 @@ static bool8 SetupBagMenu(void)
         PrintPocketNames(gPocketNamesStringsTable[gBagPosition.pocket], 0);
         CopyPocketNameToWindow(0);
         for (i = 0; i < POCKETS_COUNT; i++)
+        {
+            if (i == POCKET_TM_HM && ShouldHideTMHMPocket())
+                continue;
             DrawPocketIndicatorSquare(i, i == gBagPosition.pocket);
+        }
         gMain.state++;
         break;
     case 14:
@@ -1440,6 +1482,20 @@ static u8 GetSwitchBagPocketDirection(void)
 
 static void ChangeBagPocketId(u8 *bagPocketId, s8 deltaBagPocketId)
 {
+    if (ShouldHideTMHMPocket()
+     && deltaBagPocketId == MENU_CURSOR_DELTA_RIGHT
+     && *bagPocketId == POCKET_POKE_BALLS)
+    {
+        *bagPocketId += 2;
+        return;
+    }
+    if (ShouldHideTMHMPocket()
+     && deltaBagPocketId == MENU_CURSOR_DELTA_LEFT
+     && *bagPocketId == POCKET_BERRIES)
+    {
+        *bagPocketId -= 2;
+        return;
+    }
     if (deltaBagPocketId == MENU_CURSOR_DELTA_RIGHT && *bagPocketId == POCKETS_COUNT - 1)
         *bagPocketId = 0;
     else if (deltaBagPocketId == MENU_CURSOR_DELTA_LEFT && *bagPocketId == 0)

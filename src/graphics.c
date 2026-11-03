@@ -1,6 +1,19 @@
 #include "global.h"
 #include "graphics.h"
 
+#if I_TM_CASE
+const u32 gTMCaseBackgroundTiles[] = INCGFX_U32("graphics/tm_case/tm_case_background_tiles.png", ".4bpp.lz");
+const u32 gTMCaseBackgroundTilemap[] = INCGFX_U32("graphics/tm_case/tm_case_background_tilemap.bin", ".lz");
+const u32 gTMCaseSecondaryTilemap[] = INCGFX_U32("graphics/tm_case/tm_case_secondary_tilemap.bin", ".lz");
+const u32 gTMCaseMaleBackgroundPalette[] = INCGFX_U32("graphics/tm_case/tm_case_male_background_palette.pal", ".gbapal.lz");
+const u32 gTMCaseFemaleBackgroundPalette[] = INCGFX_U32("graphics/tm_case/tm_case_female_background_palette.pal", ".gbapal.lz");
+const u32 gTMCaseItemSprites[] = INCGFX_U32("graphics/tm_case/tm_case_item_sprites.png", ".4bpp.lz");
+const u32 gTMCaseMoveTypePalettes[] = INCGFX_U32("graphics/tm_case/tm_case_move_type_palettes.pal", ".gbapal.lz");
+const u32 gTMCaseMoveTypePaletteExtra[] = INCGFX_U32("graphics/tm_case/tm_case_move_type_palette_extra.pal", ".gbapal.lz");
+const u8 gTMCaseHMBadge[] = INCGFX_U8("graphics/tm_case/tm_case_hm_badge.png", ".4bpp");
+const u16 gTMCaseMainWindowPalette[] = INCGFX_U16("graphics/tm_case/tm_case_window_palette.pal", ".gbapal");
+#endif
+
 const u32 gBattleTextboxTiles[] = INCGFX_U32("graphics/battle_interface/textbox.png", ".4bpp.smol");
 const u16 gBattleTextboxPalette[] = INCBIN_U16("graphics/battle_interface/textbox.gbapal");
 const u32 gBattleTextboxTilemap[] = INCGFX_U32("graphics/battle_interface/textbox_map.bin", ".smolTM");
