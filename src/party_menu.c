@@ -73,6 +73,9 @@
 #include "trade.h"
 #include "union_room.h"
 #include "window.h"
+#if STAT_EDITOR_PARTY_MENU
+#include "ui_stat_editor.h"
+#endif
 #include "constants/battle.h"
 #include "constants/battle_frontier.h"
 #include "constants/field_effects.h"
@@ -88,6 +91,9 @@
 
 enum {
     MENU_SUMMARY,
+#if STAT_EDITOR_PARTY_MENU
+    MENU_STAT_EDIT,
+#endif
     MENU_WONDER_TRADE,
     MENU_WONDER_TRADE_ITEM,
     MENU_SWITCH,
@@ -515,6 +521,11 @@ static void BlitBitmapToPartyWindow_RightColumn(u8, u8, u8, u8, u8, bool8);
 static void BlitBitmapToPartyWindow_Equal(u8, u8, u8, u8, u8, bool8);
 #endif
 static void CursorCb_Summary(u8);
+#if STAT_EDITOR_PARTY_MENU
+static void CursorCb_StatEditor(u8);
+static void CB2_InitStatEditorFromPartyMenu(void);
+static void CB2_ReturnToPartyMenuFromStatEditor(void);
+#endif
 static void CursorCb_WonderTradeInitiate(u8);
 static void CursorCb_WonderTradeItem(u8);
 static void CursorCb_Switch(u8);
@@ -3195,6 +3206,14 @@ static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
     sPartyMenuInternal->numActions = 0;
     AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_SUMMARY);
 
+#if STAT_EDITOR_PARTY_MENU
+    if (gPartyMenu.menuType == PARTY_MENU_TYPE_FIELD
+     && mons == gParties[B_TRAINER_PLAYER]
+     && GetMonData(&mons[slotId], MON_DATA_SPECIES) != SPECIES_NONE
+     && GetMonData(&mons[slotId], MON_DATA_IS_EGG) == FALSE)
+        AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_STAT_EDIT);
+#endif
+
     if (P_PARTY_MOVE_RELEARNER
      && GetMonData(&mons[slotId], MON_DATA_SPECIES)
          && (CanBoxMonRelearnMoves(&mons[slotId].box, MOVE_RELEARNER_LEVEL_UP_MOVES)
@@ -3429,6 +3448,25 @@ static void CursorCb_Summary(u8 taskId)
     sPartyMenuInternal->exitCallback = CB2_ShowPokemonSummaryScreen;
     Task_ClosePartyMenu(taskId);
 }
+
+#if STAT_EDITOR_PARTY_MENU
+static void CursorCb_StatEditor(u8 taskId)
+{
+    PlaySE(SE_SELECT);
+    sPartyMenuInternal->exitCallback = CB2_InitStatEditorFromPartyMenu;
+    Task_ClosePartyMenu(taskId);
+}
+
+static void CB2_InitStatEditorFromPartyMenu(void)
+{
+    StatEditor_Init(gPartyMenu.slotId, CB2_ReturnToPartyMenuFromStatEditor);
+}
+
+static void CB2_ReturnToPartyMenuFromStatEditor(void)
+{
+    InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_DO_WHAT_WITH_MON, Task_TryCreateSelectionWindow, gPartyMenu.exitCallback);
+}
+#endif
 
 static void CursorCb_WonderTradeInitiate(u8 taskId)
 {

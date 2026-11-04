@@ -52,6 +52,9 @@
 #include "constants/rgb.h"
 #include "constants/songs.h"
 #include "rtc.h"
+#if STAT_EDITOR_START_MENU
+#include "ui_stat_editor.h"
+#endif
 #if QUEST_MENU_TYPE != QUEST_MENU_0
 #include "quests.h"
 #endif
@@ -77,6 +80,9 @@ enum
 #if QUEST_MENU_TYPE != QUEST_MENU_0
     MENU_ACTION_QUEST_MENU,
 #endif
+#if STAT_EDITOR_START_MENU
+    MENU_ACTION_STAT_EDITOR,
+#endif
 };
 
 // Save status
@@ -97,7 +103,9 @@ EWRAM_DATA static u8 sStartClockWindowId = 0;
 EWRAM_DATA static u8 sBattlePyramidFloorWindowId = 0;
 EWRAM_DATA static u8 sStartMenuCursorPos = 0;
 EWRAM_DATA static u8 sNumStartMenuActions = 0;
-#if QUEST_MENU_TYPE != QUEST_MENU_0
+#if STAT_EDITOR_START_MENU
+EWRAM_DATA static u8 sCurrentStartMenuActions[11] = {0};
+#elif QUEST_MENU_TYPE != QUEST_MENU_0
 EWRAM_DATA static u8 sCurrentStartMenuActions[10] = {0};
 #else
 EWRAM_DATA static u8 sCurrentStartMenuActions[9] = {0};
@@ -124,6 +132,9 @@ static bool8 StartMenuBattlePyramidRetireCallback(void);
 static bool8 StartMenuBattlePyramidBagCallback(void);
 static bool8 StartMenuDebugCallback(void);
 static bool8 StartMenuDexNavCallback(void);
+#if STAT_EDITOR_START_MENU
+static bool8 StartMenuStatEditorCallback(void);
+#endif
 #if QUEST_MENU_TYPE != QUEST_MENU_0
 static bool8 QuestMenuCallback(void);
 #endif
@@ -229,6 +240,9 @@ static const struct MenuAction sStartMenuItems[] =
     [MENU_ACTION_DEXNAV]          = {gText_MenuDexNav,  {.u8_void = StartMenuDexNavCallback}},
 #if QUEST_MENU_TYPE != QUEST_MENU_0
     [MENU_ACTION_QUEST_MENU]      = {sText_QuestMenu,   {.u8_void = QuestMenuCallback}},
+#endif
+#if STAT_EDITOR_START_MENU
+    [MENU_ACTION_STAT_EDITOR]     = {gText_StatEditorShort,  {.u8_void = StartMenuStatEditorCallback}},
 #endif
 };
 
@@ -362,6 +376,11 @@ static void BuildNormalStartMenu(void)
 
     if (FlagGet(FLAG_SYS_POKENAV_GET) == TRUE)
         AddStartMenuAction(MENU_ACTION_POKENAV);
+
+#if STAT_EDITOR_START_MENU
+    if (gPartiesCount[B_TRAINER_PLAYER] != 0)
+        AddStartMenuAction(MENU_ACTION_STAT_EDITOR);
+#endif
 
     AddStartMenuAction(MENU_ACTION_PLAYER);
 
@@ -878,6 +897,14 @@ static bool8 StartMenuPokemonCallback(void)
 
     return FALSE;
 }
+
+#if STAT_EDITOR_START_MENU
+static bool8 StartMenuStatEditorCallback(void)
+{
+    CreateTask(Task_OpenStatEditorFromStartMenu, 0);
+    return TRUE;
+}
+#endif
 
 static bool8 StartMenuBagCallback(void)
 {

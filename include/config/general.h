@@ -76,6 +76,8 @@
 // General settings
 #define EXPANSION_INTRO              TRUE    // If TRUE, a custom RHH intro will play after the vanilla copyright screen.
 #define PHONEMES_SHARED              FALSE   // If TRUE, bard phonemes all reference the same sound (sound/direct_sound_samples/phonemes/shared.bin) to save ROM space.
+#define STAT_EDITOR_START_MENU       TRUE    // If TRUE, adds the stat editor to the start menu.
+#define STAT_EDITOR_PARTY_MENU       TRUE    // If TRUE, adds the stat editor to the party menu.
 
 // Measurement system constants to be used for UNITS
 #define UNITS_IMPERIAL               0       // Inches, feet, pounds

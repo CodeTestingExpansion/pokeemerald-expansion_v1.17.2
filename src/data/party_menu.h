@@ -991,6 +991,9 @@ struct
 } static const sCursorOptions[MENU_FIELD_MOVES] =
 {
     [MENU_SUMMARY]         = {COMPOUND_STRING("SUMMARY"),         CursorCb_Summary},
+#if STAT_EDITOR_PARTY_MENU
+    [MENU_STAT_EDIT]       = {gText_StatEditor,                   CursorCb_StatEditor},
+#endif
     [MENU_WONDER_TRADE]    = {COMPOUND_STRING("TRADE"),           CursorCb_WonderTradeInitiate},
     [MENU_WONDER_TRADE_ITEM] = {COMPOUND_STRING("ITEM"),          CursorCb_WonderTradeItem},
     [MENU_SWITCH]          = {COMPOUND_STRING("SWITCH"),          CursorCb_Switch},
