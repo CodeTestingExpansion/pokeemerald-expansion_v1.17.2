@@ -75,15 +75,29 @@ TEST("Single party menu moves up in reverse slot order and wraps to cancel")
     EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_UP, FALSE, 0), 5);
 }
 
-TEST("Single party menu moves horizontally within each grid row")
+TEST("Single party menu cycles forward and backward with all directions")
 {
     SetTestPartySize(B_TRAINER_PLAYER, PARTY_SIZE);
     gPartyMenu.layout = PARTY_LAYOUT_SINGLE;
 
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_RIGHT, FALSE, 0), 1);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(1, TEST_MENU_DIR_RIGHT, FALSE, 0), 2);
     EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(2, TEST_MENU_DIR_RIGHT, FALSE, 0), 3);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(3, TEST_MENU_DIR_RIGHT, FALSE, 0), 4);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_RIGHT, FALSE, 0), 5);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(5, TEST_MENU_DIR_RIGHT, FALSE, 0), PARTY_SIZE + 1);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_RIGHT, FALSE, 0), 0);
+
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_LEFT, FALSE, 0), 5);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(5, TEST_MENU_DIR_LEFT, FALSE, 0), 4);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_LEFT, FALSE, 0), 3);
     EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(3, TEST_MENU_DIR_LEFT, FALSE, 0), 2);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(3, TEST_MENU_DIR_RIGHT, FALSE, 0), 3);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(2, TEST_MENU_DIR_LEFT, FALSE, 0), 2);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(2, TEST_MENU_DIR_LEFT, FALSE, 0), 1);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(1, TEST_MENU_DIR_LEFT, FALSE, 0), 0);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_LEFT, FALSE, 0), PARTY_SIZE + 1);
+
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_UP, FALSE, 0), PARTY_SIZE + 1);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_DOWN, FALSE, 0), 0);
 }
 
 TEST("Single party menu navigates a partially filled final row")

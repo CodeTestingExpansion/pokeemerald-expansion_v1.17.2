@@ -1954,6 +1954,7 @@ static void UpdatePartySelectionSingleLayout(s8 *slotPtr, s8 movementDir)
     {
         switch (movementDir)
         {
+        case MENU_DIR_LEFT:
         case MENU_DIR_UP:
             if (*slotPtr == 0)
                 *slotPtr = PARTY_SIZE + 1;
@@ -1969,6 +1970,7 @@ static void UpdatePartySelectionSingleLayout(s8 *slotPtr, s8 movementDir)
             else
                 (*slotPtr)--;
             break;
+        case MENU_DIR_RIGHT:
         case MENU_DIR_DOWN:
             if (*slotPtr == PARTY_SIZE + 1)
                 *slotPtr = 0;
@@ -1982,19 +1984,7 @@ static void UpdatePartySelectionSingleLayout(s8 *slotPtr, s8 movementDir)
                     *slotPtr = PARTY_SIZE + 1;
             }
             else
-                (*slotPtr)++;
-            break;
-        case MENU_DIR_RIGHT:
-            if (gPartiesCount[partyTrainer] != 1
-             && *slotPtr >= 0
-             && *slotPtr < gPartiesCount[partyTrainer]
-             && *slotPtr % 2 == 0
-             && *slotPtr + 1 < gPartiesCount[partyTrainer])
-                (*slotPtr)++;
-            break;
-        case MENU_DIR_LEFT:
-            if (*slotPtr > 0 && *slotPtr < gPartiesCount[partyTrainer] && *slotPtr % 2 == 1)
-                (*slotPtr)--;
+                    (*slotPtr)++;
             break;
         }
         return;
