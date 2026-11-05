@@ -49,66 +49,80 @@ TEST("Full multi partner party menu wraps cancel up to partner party count")
 }
 
 #if PARTY_MENU_GEN5ISH_LAYOUT
-TEST("Single party menu moves down through party slots and wraps from cancel")
+static s8 UpdateSinglePartyMenuSelection(s8 slotId, s8 direction, u8 *lastSelectedSlot)
+{
+    return Test_UpdatePartySelectionSingleLayoutWithLastSelectedSlot(slotId, direction, FALSE, lastSelectedSlot);
+}
+
+TEST("Single party menu wraps down independently within each column")
 {
     SetTestPartySize(B_TRAINER_PLAYER, PARTY_SIZE);
     gPartyMenu.layout = PARTY_LAYOUT_SINGLE;
+    u8 lastSelectedSlot = 0;
 
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_DOWN, FALSE, 0), 1);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(1, TEST_MENU_DIR_DOWN, FALSE, 0), 2);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(2, TEST_MENU_DIR_DOWN, FALSE, 0), 3);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(3, TEST_MENU_DIR_DOWN, FALSE, 0), 4);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_DOWN, FALSE, 0), 5);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(5, TEST_MENU_DIR_DOWN, FALSE, 0), PARTY_SIZE + 1);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_DOWN, FALSE, 0), 0);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(0, TEST_MENU_DIR_DOWN, &lastSelectedSlot), 2);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(2, TEST_MENU_DIR_DOWN, &lastSelectedSlot), 4);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(4, TEST_MENU_DIR_DOWN, &lastSelectedSlot), PARTY_SIZE + 1);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(PARTY_SIZE + 1, TEST_MENU_DIR_DOWN, &lastSelectedSlot), 0);
+
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(1, TEST_MENU_DIR_DOWN, &lastSelectedSlot), 3);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(3, TEST_MENU_DIR_DOWN, &lastSelectedSlot), 5);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(5, TEST_MENU_DIR_DOWN, &lastSelectedSlot), PARTY_SIZE + 1);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(PARTY_SIZE + 1, TEST_MENU_DIR_DOWN, &lastSelectedSlot), 1);
 }
 
-TEST("Single party menu moves up in reverse slot order and wraps to cancel")
+TEST("Single party menu wraps up independently within each column")
 {
     SetTestPartySize(B_TRAINER_PLAYER, PARTY_SIZE);
     gPartyMenu.layout = PARTY_LAYOUT_SINGLE;
+    u8 lastSelectedSlot = 0;
 
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(5, TEST_MENU_DIR_UP, FALSE, 0), 4);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_UP, FALSE, 0), 3);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(1, TEST_MENU_DIR_UP, FALSE, 0), 0);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_UP, FALSE, 0), PARTY_SIZE + 1);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_UP, FALSE, 0), 5);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(4, TEST_MENU_DIR_UP, &lastSelectedSlot), 2);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(2, TEST_MENU_DIR_UP, &lastSelectedSlot), 0);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(0, TEST_MENU_DIR_UP, &lastSelectedSlot), PARTY_SIZE + 1);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(PARTY_SIZE + 1, TEST_MENU_DIR_UP, &lastSelectedSlot), 4);
+
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(5, TEST_MENU_DIR_UP, &lastSelectedSlot), 3);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(3, TEST_MENU_DIR_UP, &lastSelectedSlot), 1);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(1, TEST_MENU_DIR_UP, &lastSelectedSlot), PARTY_SIZE + 1);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(PARTY_SIZE + 1, TEST_MENU_DIR_UP, &lastSelectedSlot), 5);
 }
 
-TEST("Single party menu cycles forward and backward with all directions")
+TEST("Single party menu moves horizontally between mons in each row")
 {
     SetTestPartySize(B_TRAINER_PLAYER, PARTY_SIZE);
     gPartyMenu.layout = PARTY_LAYOUT_SINGLE;
 
     EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_RIGHT, FALSE, 0), 1);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(1, TEST_MENU_DIR_RIGHT, FALSE, 0), 2);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(2, TEST_MENU_DIR_RIGHT, FALSE, 0), 3);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(3, TEST_MENU_DIR_RIGHT, FALSE, 0), 4);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_RIGHT, FALSE, 0), 5);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(5, TEST_MENU_DIR_RIGHT, FALSE, 0), PARTY_SIZE + 1);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_RIGHT, FALSE, 0), 0);
-
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_LEFT, FALSE, 0), 5);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(5, TEST_MENU_DIR_LEFT, FALSE, 0), 4);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_LEFT, FALSE, 0), 3);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(3, TEST_MENU_DIR_LEFT, FALSE, 0), 2);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(2, TEST_MENU_DIR_LEFT, FALSE, 0), 1);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(1, TEST_MENU_DIR_RIGHT, FALSE, 0), 0);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_LEFT, FALSE, 0), 1);
     EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(1, TEST_MENU_DIR_LEFT, FALSE, 0), 0);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_LEFT, FALSE, 0), PARTY_SIZE + 1);
-
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_UP, FALSE, 0), PARTY_SIZE + 1);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_DOWN, FALSE, 0), 0);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(2, TEST_MENU_DIR_RIGHT, FALSE, 0), 3);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(3, TEST_MENU_DIR_LEFT, FALSE, 0), 2);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_RIGHT, FALSE, 0), 5);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(5, TEST_MENU_DIR_LEFT, FALSE, 0), 4);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_LEFT, FALSE, 0), PARTY_SIZE + 1);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_RIGHT, FALSE, 0), PARTY_SIZE + 1);
 }
 
 TEST("Single party menu navigates a partially filled final row")
 {
     SetTestPartySize(B_TRAINER_PLAYER, 5);
     gPartyMenu.layout = PARTY_LAYOUT_SINGLE;
+    u8 lastSelectedSlot = 0;
 
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(3, TEST_MENU_DIR_DOWN, FALSE, 0), 4);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(1, TEST_MENU_DIR_DOWN, &lastSelectedSlot), 3);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(3, TEST_MENU_DIR_DOWN, &lastSelectedSlot), PARTY_SIZE + 1);
+    EXPECT_EQ(lastSelectedSlot & 1, 1);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(PARTY_SIZE + 1, TEST_MENU_DIR_DOWN, &lastSelectedSlot), 1);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(3, TEST_MENU_DIR_UP, &lastSelectedSlot), 1);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(1, TEST_MENU_DIR_UP, &lastSelectedSlot), PARTY_SIZE + 1);
+    EXPECT_EQ(UpdateSinglePartyMenuSelection(PARTY_SIZE + 1, TEST_MENU_DIR_UP, &lastSelectedSlot), 3);
     EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_DOWN, FALSE, 0), PARTY_SIZE + 1);
     EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(PARTY_SIZE + 1, TEST_MENU_DIR_UP, FALSE, 0), 4);
-    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_UP, FALSE, 0), 3);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_UP, FALSE, 0), 2);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(0, TEST_MENU_DIR_RIGHT, FALSE, 0), 1);
+    EXPECT_EQ(Test_UpdatePartySelectionSingleLayout(4, TEST_MENU_DIR_RIGHT, FALSE, 0), 4);
 }
 #else
 TEST("Vanilla single party menu keeps vertical navigation")

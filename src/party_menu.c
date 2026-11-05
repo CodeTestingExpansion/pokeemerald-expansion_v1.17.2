@@ -475,6 +475,8 @@ static void Task_DisplayLevelUpStatsPg2(u8);
 static void DisplayLevelUpStatsPg2(u8);
 static void Task_TryLearnNewMoves(u8);
 static void PartyMenuTryEvolution(u8);
+static bool8 CanContinueUsingLevelItem(void);
+static void CB2_ReturnToPartyMenuUsingLevelItem(void);
 static void DisplayMonNeedsToReplaceMove(u8);
 static void DisplayMonLearnedMove(u8, u16);
 static void UseSacredAsh(u8);
@@ -1965,37 +1967,62 @@ static void UpdatePartySelectionSingleLayout(s8 *slotPtr, s8 movementDir)
     {
         switch (movementDir)
         {
-        case MENU_DIR_LEFT:
         case MENU_DIR_UP:
-            if (*slotPtr == 0)
-                *slotPtr = PARTY_SIZE + 1;
-            else if (*slotPtr == PARTY_SIZE)
-                *slotPtr = gPartiesCount[partyTrainer] - 1;
-            else if (*slotPtr == PARTY_SIZE + 1)
+            if (*slotPtr == PARTY_SIZE + 1)
             {
-                if (sPartyMenuInternal->chooseHalf)
-                    *slotPtr = PARTY_SIZE;
-                else
+                s8 lastSlot = gPartiesCount[partyTrainer] - 1;
+                if (lastSlot >= 0 && (lastSlot & 1) != (sPartyMenuInternal->lastSelectedSlot & 1))
+                    lastSlot--;
+                if (lastSlot < 0 && gPartiesCount[partyTrainer] != 0)
+                    lastSlot = gPartiesCount[partyTrainer] - 1;
+                if (lastSlot >= 0)
+                    *slotPtr = lastSlot;
+            }
+            else if (*slotPtr == PARTY_SIZE)
+            {
+                if (gPartiesCount[partyTrainer] != 0)
                     *slotPtr = gPartiesCount[partyTrainer] - 1;
             }
-            else
-                (*slotPtr)--;
+            else if (*slotPtr >= 0 && *slotPtr < gPartiesCount[partyTrainer] && *slotPtr < 2)
+            {
+                sPartyMenuInternal->lastSelectedSlot = *slotPtr;
+                *slotPtr = PARTY_SIZE + 1;
+            }
+            else if (*slotPtr >= 2 && *slotPtr < gPartiesCount[partyTrainer])
+            {
+                *slotPtr -= 2;
+            }
             break;
-        case MENU_DIR_RIGHT:
         case MENU_DIR_DOWN:
             if (*slotPtr == PARTY_SIZE + 1)
-                *slotPtr = 0;
-            else if (*slotPtr == PARTY_SIZE)
-                *slotPtr = PARTY_SIZE + 1;
-            else if (*slotPtr == gPartiesCount[partyTrainer] - 1)
             {
-                if (sPartyMenuInternal->chooseHalf)
-                    *slotPtr = PARTY_SIZE;
-                else
-                    *slotPtr = PARTY_SIZE + 1;
+                *slotPtr = sPartyMenuInternal->lastSelectedSlot & 1;
+                if (*slotPtr >= gPartiesCount[partyTrainer])
+                    *slotPtr = 0;
             }
-            else
-                    (*slotPtr)++;
+            else if (*slotPtr == PARTY_SIZE)
+            {
+                *slotPtr = PARTY_SIZE + 1;
+            }
+            else if (*slotPtr >= 0 && *slotPtr < gPartiesCount[partyTrainer])
+            {
+                if (*slotPtr + 2 < gPartiesCount[partyTrainer])
+                    *slotPtr += 2;
+                else
+                {
+                    sPartyMenuInternal->lastSelectedSlot = *slotPtr;
+                    *slotPtr = PARTY_SIZE + 1;
+                }
+            }
+            break;
+        case MENU_DIR_LEFT:
+        case MENU_DIR_RIGHT:
+            if (*slotPtr >= 0 && *slotPtr < gPartiesCount[partyTrainer])
+            {
+                s8 pairedSlot = *slotPtr ^ 1;
+                if (pairedSlot < gPartiesCount[partyTrainer])
+                    *slotPtr = pairedSlot;
+            }
             break;
         }
         return;
@@ -6133,7 +6160,10 @@ static void TryUseItemOnMove(u8 taskId)
             PlaySE(SE_SELECT);
             DisplayPartyMenuMessage(gText_WontHaveEffect, TRUE);
             ScheduleBgCopyTilemapToVram(2);
-            gTasks[taskId].func = Task_ClosePartyMenuAfterText;
+            if (gPartyMenu.menuType == PARTY_MENU_TYPE_FIELD && CheckBagHasItem(item, 1))
+                gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
+            else
+                gTasks[taskId].func = Task_ClosePartyMenuAfterText;
         }
         else
         {
@@ -6145,7 +6175,10 @@ static void TryUseItemOnMove(u8 taskId)
             GetMedicineItemEffectMessage(item, 0);
             DisplayPartyMenuMessage(gStringVar4, TRUE);
             ScheduleBgCopyTilemapToVram(2);
-            gTasks[taskId].func = Task_ClosePartyMenuAfterText;
+            if (gPartyMenu.menuType == PARTY_MENU_TYPE_FIELD && CheckBagHasItem(item, 1))
+                gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
+            else
+                gTasks[taskId].func = Task_ClosePartyMenuAfterText;
         }
     }
 }
@@ -6329,7 +6362,7 @@ static void CB2_ReturnToPartyMenuWhileLearningMove(void)
 {
     if (sFinalLevel != 0)
         SetMonData(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], MON_DATA_LEVEL, &sFinalLevel); // to avoid displaying incorrect level
-    if (GetItemFieldFunc(gSpecialVar_ItemId) == ItemUseOutOfBattle_RareCandy && gPartyMenu.menuType == PARTY_MENU_TYPE_FIELD && CheckBagHasItem(gSpecialVar_ItemId, 1))
+    if (CanContinueUsingLevelItem())
         InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_USE_ITEM, TRUE, PARTY_MSG_NONE, Task_ReturnToPartyMenuWhileLearningMove, gPartyMenu.exitCallback);
     else
         InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_CHOOSE_MON, TRUE, PARTY_MSG_NONE, Task_ReturnToPartyMenuWhileLearningMove, gPartyMenu.exitCallback);
@@ -6457,6 +6490,13 @@ static void UNUSED DisplayExpPoints(u8 taskId, TaskFunc task, u8 holdEffectParam
     gTasks[taskId].func = task;
 }
 
+static bool8 CanContinueUsingLevelItem(void)
+{
+    return gPartyMenu.menuType == PARTY_MENU_TYPE_FIELD
+        && GetItemEffectType(gSpecialVar_ItemId) == ITEM_EFFECT_RAISE_LEVEL
+        && CheckBagHasItem(gSpecialVar_ItemId, 1);
+}
+
 void ItemUseCB_RareCandy(u8 taskId, TaskFunc task)
 {
     s16 *data = gTasks[taskId].data;
@@ -6491,7 +6531,10 @@ void ItemUseCB_RareCandy(u8 taskId, TaskFunc task)
             GetEvolutionTargetSpecies(mon, EVO_MODE_NORMAL, ITEM_NONE, NULL, &canStopEvo, DO_EVO);
             RemoveBagItem(gSpecialVar_ItemId, 1);
             FreePartyPointers();
-            gCB2_AfterEvolution = gPartyMenu.exitCallback;
+            if (CanContinueUsingLevelItem())
+                gCB2_AfterEvolution = CB2_ReturnToPartyMenuUsingLevelItem;
+            else
+                gCB2_AfterEvolution = gPartyMenu.exitCallback;
             BeginEvolutionScene(mon, targetSpecies, canStopEvo, gPartyMenu.slotId);
             DestroyTask(taskId);
         }
@@ -6649,7 +6692,7 @@ static void Task_TryLearningNextMove(u8 taskId)
     }
 }
 
-static void CB2_ReturnToPartyMenuUsingRareCandy(void)
+static void CB2_ReturnToPartyMenuUsingLevelItem(void)
 {
     gItemUseCB = ItemUseCB_RareCandy;
     SetMainCallback2(CB2_ShowPartyMenuForItemUse);
@@ -6671,8 +6714,8 @@ static void PartyMenuTryEvolution(u8 taskId)
     {
         GetEvolutionTargetSpecies(mon, EVO_MODE_NORMAL, ITEM_NONE, NULL, &canStopEvo, DO_EVO);
         FreePartyPointers();
-        if (GetItemFieldFunc(gSpecialVar_ItemId) == ItemUseOutOfBattle_RareCandy && gPartyMenu.menuType == PARTY_MENU_TYPE_FIELD && CheckBagHasItem(gSpecialVar_ItemId, 1))
-            gCB2_AfterEvolution = CB2_ReturnToPartyMenuUsingRareCandy;
+        if (CanContinueUsingLevelItem())
+            gCB2_AfterEvolution = CB2_ReturnToPartyMenuUsingLevelItem;
         else
             gCB2_AfterEvolution = gPartyMenu.exitCallback;
         BeginEvolutionScene(mon, targetSpecies, canStopEvo, gPartyMenu.slotId);
@@ -9534,19 +9577,25 @@ static u8 IndividualToCombinedPartyId(u8 index, enum BattlerId battler)
 }
 
 #if TESTING
-s8 Test_UpdatePartySelectionSingleLayout(s8 slotId, s8 movementDir, bool8 chooseHalf, u8 lastSelectedSlot)
+s8 Test_UpdatePartySelectionSingleLayoutWithLastSelectedSlot(s8 slotId, s8 movementDir, bool8 chooseHalf, u8 *lastSelectedSlot)
 {
     struct PartyMenuInternal internal = {0};
     struct PartyMenuInternal *savedInternal = sPartyMenuInternal;
 
     internal.chooseHalf = chooseHalf;
-    internal.lastSelectedSlot = lastSelectedSlot;
+    internal.lastSelectedSlot = *lastSelectedSlot;
     sPartyMenuInternal = &internal;
 
     UpdatePartySelectionSingleLayout(&slotId, movementDir);
 
+    *lastSelectedSlot = internal.lastSelectedSlot;
     sPartyMenuInternal = savedInternal;
     return slotId;
+}
+
+s8 Test_UpdatePartySelectionSingleLayout(s8 slotId, s8 movementDir, bool8 chooseHalf, u8 lastSelectedSlot)
+{
+    return Test_UpdatePartySelectionSingleLayoutWithLastSelectedSlot(slotId, movementDir, chooseHalf, &lastSelectedSlot);
 }
 #endif
 
