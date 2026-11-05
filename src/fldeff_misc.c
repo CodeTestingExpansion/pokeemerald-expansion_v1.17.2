@@ -17,8 +17,10 @@
 #include "event_scripts.h"
 #include "event_object_movement.h"
 #include "metatile_behavior.h"
+#include "overworld.h"
 #include "string_util.h"
 #include "constants/field_effects.h"
+#include "constants/game_stat.h"
 #include "constants/metatile_behaviors.h"
 #include "constants/metatile_labels.h"
 #include "constants/songs.h"
@@ -52,6 +54,7 @@ static void SpriteCB_TreeEntranceEnd(struct Sprite *);
 static void StartSecretBaseTreeFieldEffect(void);
 
 static void FieldCallback_SecretBaseShrub(void);
+static void FieldCallback_Headbutt(void);
 static void SpriteCB_ShrubEntranceInit(struct Sprite *);
 static void SpriteCB_ShrubEntranceOpen(struct Sprite *);
 static void SpriteCB_ShrubEntranceEnd(struct Sprite *);
@@ -1310,4 +1313,40 @@ void DestroyRecordMixingLights(void)
             DestroySprite(&gSprites[i]);
         }
     }
+}
+
+static void FieldMove_Headbutt(void)
+{
+    PlaySE(SE_M_HEADBUTT);
+    FieldEffectActiveListRemove(FLDEFF_USE_HEADBUTT);
+    ScriptContext_Enable();
+}
+
+bool8 FldEff_UseHeadbutt(void)
+{
+    u8 taskId = CreateFieldMoveTask();
+
+    gTasks[taskId].data[8] = (u32)FieldMove_Headbutt >> 16;
+    gTasks[taskId].data[9] = (u32)FieldMove_Headbutt;
+    IncrementGameStat(GAME_STAT_USED_HEADBUTT);
+    return FALSE;
+}
+
+bool32 SetUpFieldMove_Headbutt(void)
+{
+    GetXYCoordsOneStepInFrontOfPlayer(&gPlayerFacingPosition.x, &gPlayerFacingPosition.y);
+    if (MapGridGetMetatileBehaviorAt(gPlayerFacingPosition.x, gPlayerFacingPosition.y) == MB_HEADBUTT)
+    {
+        gFieldCallback2 = FieldCallback_PrepareFadeInFromMenu;
+        gPostMenuFieldCallback = FieldCallback_Headbutt;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static void FieldCallback_Headbutt(void)
+{
+    gFieldEffectArguments[0] = GetCursorSelectionMonId();
+    ScriptContext_SetupScript(EventScript_UseHeadbutt);
 }

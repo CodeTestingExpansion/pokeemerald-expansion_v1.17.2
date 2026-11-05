@@ -255,6 +255,11 @@ bool8 MetatileBehavior_IsEscalator(u8 metatileBehavior)
         return FALSE;
 }
 
+bool8 MetatileBehavior_IsHeadbuttTree(u8 metatileBehavior)
+{
+    return metatileBehavior == MB_HEADBUTT;
+}
+
 bool8 MetatileBehavior_IsLadder(u8 metatileBehavior)
 {
     if (metatileBehavior == MB_LADDER)

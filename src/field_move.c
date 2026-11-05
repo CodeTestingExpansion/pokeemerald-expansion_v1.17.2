@@ -190,4 +190,11 @@ const struct FieldMoveInfo gFieldMoveInfo[FIELD_MOVES_COUNT] =
         .partyMsgID = PARTY_MSG_CANT_USE_HERE,
         .hideIfLocked = TRUE,
     },
+    [FIELD_MOVE_HEADBUTT] =
+    {
+        .fieldMoveFunc = SetUpFieldMove_Headbutt,
+        .unlockType = ALWAYS_UNLOCKED,
+        .moveID = MOVE_HEADBUTT,
+        .partyMsgID = PARTY_MSG_CANT_USE_HERE,
+    },
 };

@@ -54,6 +54,7 @@
   - [Quest Menu: Setup and Quest Authoring](tutorials/how_to_quest_menu.md)
   - [How to use Mass Outbreak](tutorials/how_to_mass_outbreak.md)
   - [How to use Overworld Wild Encounters](tutorials/how_to_overworld_wild_encounters.md)
+  - [How to add Headbutt Trees and Encounters](tutorials/how_to_headbutt_trees.md)
   - [How to use the Wonder Trade script](tutorials/how_to_wonder_trade.md)
   - [Altering Cave Encounter Tables](tutorials/how_to_altering_cave_encounters.md)
   - [How to use Dynamic Weather](tutorials/how_to_dynamic_weather.md)
