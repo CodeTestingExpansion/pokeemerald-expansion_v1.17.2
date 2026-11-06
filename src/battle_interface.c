@@ -3274,24 +3274,16 @@ static void TryHideOrRestoreLastUsedBall(u8 caseId)
 
 static void TryHideOrRestoreBattleInfoMenu(u8 caseId)
 {
-    if (B_INFO_ENABLED == FALSE)
-        return;
     if (gBattleStruct->battleStatusHintSpriteId == MAX_SPRITES)
         return;
 
     switch (caseId)
     {
     case 0: // hide
-        if (gBattleStruct->ballSpriteIds[0] != MAX_SPRITES)
-            gSprites[gBattleStruct->battleStatusHintSpriteId].sHide = TRUE;
-        if (gBattleStruct->ballSpriteIds[1] != MAX_SPRITES)
-            gSprites[gBattleStruct->battleStatusHintSpriteId].sHide = TRUE;
+        gSprites[gBattleStruct->battleStatusHintSpriteId].sHide = TRUE;
         break;
     case 1: // restore
-        if (gBattleStruct->ballSpriteIds[0] != MAX_SPRITES)
-            gSprites[gBattleStruct->battleStatusHintSpriteId].sHide = FALSE;
-        if (gBattleStruct->ballSpriteIds[1] != MAX_SPRITES)
-            gSprites[gBattleStruct->battleStatusHintSpriteId].sHide = FALSE;
+        gSprites[gBattleStruct->battleStatusHintSpriteId].sHide = FALSE;
         break;
     }
 }
@@ -3304,8 +3296,7 @@ void TryHideLastUsedBallAndBattleInfoMenu(void)
     if (B_LAST_USED_BALL == TRUE)
         TryHideOrRestoreLastUsedBall(0);
 
-    if (B_INFO_ENABLED == TRUE)
-        TryHideOrRestoreBattleInfoMenu(0);
+    TryHideOrRestoreBattleInfoMenu(0);
 }
 
 void TryRestoreLastUsedBall(void)
