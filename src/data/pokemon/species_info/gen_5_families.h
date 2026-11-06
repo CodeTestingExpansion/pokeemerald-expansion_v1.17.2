@@ -4475,7 +4475,7 @@ const struct SpeciesInfo gSpeciesInfoGen5[] =
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
-            sAnimTable_Following,
+            sAnimTable_Following_Asym,
             gOverworldPalette_LilligantHisui,
             gShinyOverworldPalette_LilligantHisui
         )
@@ -7001,7 +7001,7 @@ const struct SpeciesInfo gSpeciesInfoGen5[] =
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
-            sAnimTable_Following,
+            sAnimTable_Following_Asym,
             gOverworldPalette_ZoroarkHisui,
             gShinyOverworldPalette_ZoroarkHisui
         )
@@ -11000,7 +11000,7 @@ const struct SpeciesInfo gSpeciesInfoGen5[] =
             SIZE_32x32,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
-            sAnimTable_Following,
+            sAnimTable_Following_Asym,
             gOverworldPalette_StunfiskGalar,
             gShinyOverworldPalette_StunfiskGalar
         )
@@ -13506,7 +13506,7 @@ const struct SpeciesInfo gSpeciesInfoGen5[] =
             SIZE_64x64,
             SHADOW_SIZE_M,
             TRACKS_FOOT,
-            sAnimTable_Following,
+            sAnimTable_Following, //TODO: Asym
             gOverworldPalette_Kyurem,
             gShinyOverworldPalette_Kyurem
         )
