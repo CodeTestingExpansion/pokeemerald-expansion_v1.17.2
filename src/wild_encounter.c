@@ -39,6 +39,25 @@ extern const u8 EventScript_SprayWoreOff[];
 #define MAX_ENCOUNTER_RATE 2880
 
 #define NUM_FEEBAS_SPOTS 6
+#define HEADBUTT_OUTCOME_CHANCE 50
+#define HEADBUTT_ITEM_CHANCE 50
+
+enum HeadbuttResult
+{
+    HEADBUTT_RESULT_NOTHING,
+    HEADBUTT_RESULT_WILD,
+    HEADBUTT_RESULT_ITEM
+};
+
+static const enum Item sHeadbuttItems[] =
+{
+    ITEM_CHERI_BERRY,
+    ITEM_CHESTO_BERRY,
+    ITEM_PECHA_BERRY,
+    ITEM_RAWST_BERRY,
+    ITEM_ASPEAR_BERRY,
+    ITEM_ORAN_BERRY,
+};
 
 // Number of accessible fishing spots in each section of Route 119
 // Each section is an area of the route between the y coordinates in sRoute119WaterTileData
@@ -63,6 +82,7 @@ EWRAM_DATA static u32 sFeebasRngValue = 0;
 EWRAM_DATA bool8 gIsFishingEncounter = 0;
 EWRAM_DATA bool8 gIsSurfingEncounter = 0;
 EWRAM_DATA u8 gChainFishingDexNavStreak = 0;
+static bool8 sHeadbuttDoubleBattle;
 
 #include "data/wild_encounters.h"
 
@@ -941,25 +961,49 @@ void RockSmashWildEncounter(void)
     }
 }
 
+static void SetHeadbuttItemResult(void)
+{
+    gSpecialVar_0x8000 = sHeadbuttItems[Random() % ARRAY_COUNT(sHeadbuttItems)];
+    gSpecialVar_Result = HEADBUTT_RESULT_ITEM;
+}
+
 void HeadbuttWildEncounter(void)
 {
-    u32 headerId = GetCurrentMapWildMonHeaderId();
+    u32 headerId;
     enum TimeOfDay timeOfDay;
 
+    sHeadbuttDoubleBattle = FALSE;
+    if (!RandomPercentage(RNG_NONE, HEADBUTT_OUTCOME_CHANCE))
+    {
+        gSpecialVar_Result = HEADBUTT_RESULT_NOTHING;
+        return;
+    }
+
+    headerId = GetCurrentMapWildMonHeaderId();
     if (headerId == HEADER_NONE)
     {
-        gSpecialVar_Result = FALSE;
+        SetHeadbuttItemResult();
         return;
     }
 
     timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_HEADBUTT);
     const struct WildPokemonInfo *wildPokemonInfo = gWildMonHeaders[headerId].encounterTypes[timeOfDay].headbuttMonsInfo;
 
-    if (wildPokemonInfo == NULL
-     || !WildEncounterCheck(wildPokemonInfo->encounterRate, TRUE)
-     || !TryGenerateWildMon(wildPokemonInfo, WILD_AREA_HEADBUTT, WILD_CHECK_REPEL | WILD_CHECK_KEEN_EYE))
+    if (wildPokemonInfo == NULL)
     {
-        gSpecialVar_Result = FALSE;
+        SetHeadbuttItemResult();
+        return;
+    }
+
+    if (RandomPercentage(RNG_NONE, HEADBUTT_ITEM_CHANCE))
+    {
+        SetHeadbuttItemResult();
+        return;
+    }
+
+    if (!TryGenerateWildMon(wildPokemonInfo, WILD_AREA_HEADBUTT, WILD_CHECK_REPEL | WILD_CHECK_KEEN_EYE))
+    {
+        gSpecialVar_Result = HEADBUTT_RESULT_NOTHING;
         return;
     }
 
@@ -969,18 +1013,18 @@ void HeadbuttWildEncounter(void)
         if (TryGenerateWildMon(wildPokemonInfo, WILD_AREA_HEADBUTT, WILD_CHECK_REPEL | WILD_CHECK_KEEN_EYE))
         {
             gParties[B_TRAINER_OPPONENT_A][1] = mon1;
-            BattleSetup_StartDoubleWildBattle();
-        }
-        else
-        {
-            BattleSetup_StartWildBattle();
+            sHeadbuttDoubleBattle = TRUE;
         }
     }
+    gSpecialVar_Result = HEADBUTT_RESULT_WILD;
+}
+
+void HeadbuttStartWildBattle(void)
+{
+    if (sHeadbuttDoubleBattle)
+        BattleSetup_StartScriptedDoubleWildBattle();
     else
-    {
-        BattleSetup_StartWildBattle();
-    }
-    gSpecialVar_Result = TRUE;
+        BattleSetup_StartScriptedWildBattle();
 }
 
 bool8 SweetScentWildEncounter(void)

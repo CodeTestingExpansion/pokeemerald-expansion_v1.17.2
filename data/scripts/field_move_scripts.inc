@@ -521,8 +521,23 @@ EventScript_HeadbuttCommon:
 	special ShakeCamera
 	waitstate
 	special HeadbuttWildEncounter
-	goto_if_eq VAR_RESULT, FALSE, EventScript_EndHeadbutt
-	waitstate
+	goto_if_eq VAR_RESULT, 0, EventScript_NoHeadbuttPokemon
+	goto_if_eq VAR_RESULT, 2, EventScript_HeadbuttItemFound
+	msgbox Text_HeadbuttPokemonFound, MSGBOX_DEFAULT
+	special HeadbuttStartWildBattle
+	goto EventScript_EndHeadbutt
+EventScript_HeadbuttItemFound::
+	bufferitemname STR_VAR_1, VAR_0x8000
+	msgbox Text_HeadbuttItemFound, MSGBOX_DEFAULT
+	setvar VAR_0x8001, 1
+	call Std_ObtainItem
+	goto_if_eq VAR_0x8007, FALSE, EventScript_HeadbuttBagFull
+	goto EventScript_EndHeadbutt
+EventScript_HeadbuttBagFull::
+	msgbox Text_HeadbuttBagFull, MSGBOX_DEFAULT
+	goto EventScript_EndHeadbutt
+EventScript_NoHeadbuttPokemon::
+	msgbox Text_NoPokemonInTree, MSGBOX_DEFAULT
 EventScript_EndHeadbutt::
 	releaseall
 	end
@@ -545,6 +560,18 @@ Text_WantToHeadbutt:
 Text_CantHeadbutt:
 	.string "There's a large, formidable tree\n"
 	.string "that looks like it can be headbutted!$"
+
+Text_HeadbuttPokemonFound:
+	.string "Something is here...$"
+
+Text_NoPokemonInTree:
+	.string "There's nothing in this tree.$"
+
+Text_HeadbuttItemFound:
+	.string "A {STR_VAR_1} fell from the tree!$"
+
+Text_HeadbuttBagFull:
+	.string "There's no room for any more items!$"
 
 EventScript_DisableAutoRun::
     msgbox AutoRunDisabled MSGBOX_SIGN

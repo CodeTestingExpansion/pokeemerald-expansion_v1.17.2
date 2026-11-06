@@ -643,5 +643,6 @@ gSpecials::
 	def_special StickerManGetBragFlags
 	def_special CheckAddCoins
 	def_special HeadbuttWildEncounter
+	def_special HeadbuttStartWildBattle, waitstate=1
 	def_special GetStarterPokemonForScript
 	def_special ChooseItemFromBag
