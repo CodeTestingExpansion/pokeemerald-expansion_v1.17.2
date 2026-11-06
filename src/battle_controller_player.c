@@ -298,7 +298,7 @@ static void HandleInputChooseAction(enum BattlerId battler)
                 gBattleStruct->ackBallUseBtn = FALSE;
                 PlaySE(SE_SELECT);
                 ArrowsChangeColorLastBallCycle(FALSE);
-                TryHideLastUsedBall();
+                TryHideLastUsedBallAndBattleInfoMenu();
                 BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_THROW_BALL, 0);
                 BtlController_Complete(battler);
             }
@@ -311,7 +311,7 @@ static void HandleInputChooseAction(enum BattlerId battler)
     {
         TryToHideBattleStatusHint();
         PlaySE(SE_SELECT);
-        TryHideLastUsedBall();
+        TryHideLastUsedBallAndBattleInfoMenu();
         BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_BLACK);
         gBattlerControllerFuncs[battler] = OpenBattleStatusMenu;
         gBattlerInMenuId = battler;
@@ -322,7 +322,7 @@ static void HandleInputChooseAction(enum BattlerId battler)
     {
         TryToHideBattleStatusHint();
         PlaySE(SE_SELECT);
-        TryHideLastUsedBall();
+        TryHideLastUsedBallAndBattleInfoMenu();
 
         switch (gActionSelectionCursor[battler])
         {
@@ -421,7 +421,7 @@ static void HandleInputChooseAction(enum BattlerId battler)
              && JOY_NEW(B_LAST_USED_BALL_BUTTON) && CanThrowLastUsedBall())
     {
         PlaySE(SE_SELECT);
-        TryHideLastUsedBall();
+        TryHideLastUsedBallAndBattleInfoMenu();
         BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_THROW_BALL, 0);
         BtlController_Complete(battler);
     }
@@ -480,7 +480,7 @@ void HandleInputChooseTarget(enum BattlerId battler)
         else
             BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | (gMultiUsePlayerCursor << 8));
         EndBounceEffect(gMultiUsePlayerCursor, BOUNCE_HEALTHBOX);
-        TryHideLastUsedBall();
+        TryHideLastUsedBallAndBattleInfoMenu();
         HideGimmickTriggerSprite();
         BtlController_Complete(battler);
     }
@@ -675,7 +675,7 @@ void HandleInputShowTargets(enum BattlerId battler)
         else
             BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | (gMultiUsePlayerCursor << 8));
         HideGimmickTriggerSprite();
-        TryHideLastUsedBall();
+        TryHideLastUsedBallAndBattleInfoMenu();
         BtlController_Complete(battler);
     }
     else if (JOY_NEW(B_BUTTON) || gPlayerDpadHoldFrames > 59)
@@ -798,7 +798,7 @@ void HandleInputChooseMove(enum BattlerId battler)
             else
                 BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | (gMultiUsePlayerCursor << 8));
             HideGimmickTriggerSprite();
-            TryHideLastUsedBall();
+            TryHideLastUsedBallAndBattleInfoMenu();
             BtlController_Complete(battler);
             break;
         case 1:
