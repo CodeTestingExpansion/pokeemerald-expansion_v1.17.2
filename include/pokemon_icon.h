@@ -21,6 +21,7 @@ enum Species GetIconSpecies(enum Species species, u32 personality);
 u16 GetUnownLetterByPersonality(u32 personality);
 enum Species GetIconSpeciesNoPersonality(enum Species species);
 void LoadMonIconPalettes(void);
+u8 LoadMonIconPaletteGetIndex(enum Species species, u32 personality);
 void LoadMonIconPalette(enum Species species);
 void FreeMonIconPalettes(void);
 u8 CreateMonIconNoPersonality(enum Species species, void (*callback)(struct Sprite *), s16 x, s16 y, u8 subpriority);
