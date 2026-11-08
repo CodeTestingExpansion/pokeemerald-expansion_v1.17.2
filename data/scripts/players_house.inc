@@ -1,11 +1,5 @@
 PlayersHouse_2F_EventScript_BlockStairsUntilClockIsSet::
-#if OW_USE_FAKE_RTC
 	setvar VAR_LITTLEROOT_INTRO_STATE, 5
-#else
-	setvar VAR_LITTLEROOT_INTRO_STATE, 6
-	setflag FLAG_HIDE_LITTLEROOT_TOWN_PLAYERS_HOUSE_VIGOROTH_1
-	setflag FLAG_HIDE_LITTLEROOT_TOWN_PLAYERS_HOUSE_VIGOROTH_2
-#endif
 	return
 
 PlayersHouse_1F_EventScript_EnterHouseMovingIn::
@@ -60,7 +54,6 @@ LittlerootTown_MaysHouse_2F_EventScript_WallClock::
 
 PlayersHouse_2F_EventScript_WallClock::
 	goto_if_set FLAG_SET_WALL_CLOCK, PlayersHouse_2F_EventScript_CheckWallClock
-#if OW_USE_FAKE_RTC
 	msgbox PlayersHouse_2F_Text_ClockIsStopped, MSGBOX_DEFAULT
 	call PlayersHouse_2F_EventScript_SetWallClock
 	delay 30
@@ -75,43 +68,6 @@ PlayersHouse_2F_EventScript_WallClock::
 	removeobject VAR_0x8008
 	releaseall
 	end
-#else
-	gettime
-#if SM_TIME == SM_TIME_12H
-	goto_if_eq VAR_0x8000, 0, PlayersHouse_2F_EventScript_ClockWorkingMidnight
-	goto_if_lt VAR_0x8000, 12, PlayersHouse_2F_EventScript_ClockWorkingAM
-	goto_if_eq VAR_0x8000, 12, PlayersHouse_2F_EventScript_ClockWorkingNoon
-	subvar VAR_0x8000, 12
-PlayersHouse_2F_EventScript_ClockWorkingNoon::
-	bufferstring STR_VAR_3, PlayersHouse_2F_Text_PM
-	goto PlayersHouse_2F_EventScript_BufferClockTime
-
-PlayersHouse_2F_EventScript_ClockWorkingAM::
-	bufferstring STR_VAR_3, PlayersHouse_2F_Text_AM
-	goto PlayersHouse_2F_EventScript_BufferClockTime
-
-PlayersHouse_2F_EventScript_ClockWorkingMidnight::
-	setvar VAR_0x8000, 12
-	bufferstring STR_VAR_3, PlayersHouse_2F_Text_AM
-#else
-	bufferstring STR_VAR_3, PlayersHouse_2F_Text_NoTimeSuffix
-#endif
-PlayersHouse_2F_EventScript_BufferClockTime::
-	buffernumberstring STR_VAR_1, VAR_0x8000
-	buffernumberstring STR_VAR_2, VAR_0x8001
-	incrementgamestat GAME_STAT_CHECKED_CLOCK
-	goto_if_lt VAR_0x8001, 10, PlayersHouse_2F_EventScript_ClockWorkingMinutesUnderTen
-	msgbox PlayersHouse_2F_Text_ClockIsWorking, MSGBOX_DEFAULT
-	goto PlayersHouse_2F_EventScript_FinishClockWorkingMessage
-
-PlayersHouse_2F_EventScript_ClockWorkingMinutesUnderTen::
-	msgbox PlayersHouse_2F_Text_ClockIsWorkingMinutesUnderTen, MSGBOX_DEFAULT
-
-PlayersHouse_2F_EventScript_FinishClockWorkingMessage::
-	setflag FLAG_SET_WALL_CLOCK
-	releaseall
-	end
-#endif
 
 PlayersHouse_2F_EventScript_MomComesUpstairsMale::
 	setvar VAR_0x8008, LOCALID_PLAYERS_HOUSE_2F_MOM
@@ -150,23 +106,6 @@ PlayersHouse_2F_EventScript_SetWallClock::
 	fadescreen FADE_TO_BLACK
 	special StartWallClock
 	return
-
-PlayersHouse_2F_Text_ClockIsWorking:
-	.string "Oh! The clock is working.\n"
-	.string "It's now {STR_VAR_1}:{STR_VAR_2}{STR_VAR_3}.$"
-
-PlayersHouse_2F_Text_ClockIsWorkingMinutesUnderTen:
-	.string "Oh! The clock is working.\n"
-	.string "It's now {STR_VAR_1}:0{STR_VAR_2}{STR_VAR_3}.$"
-
-PlayersHouse_2F_Text_AM:
-	.string " AM$"
-
-PlayersHouse_2F_Text_PM:
-	.string " PM$"
-
-PlayersHouse_2F_Text_NoTimeSuffix:
-	.string "$"
 
 PlayersHouse_2F_Movement_MomEntersMale:
 	delay_8
