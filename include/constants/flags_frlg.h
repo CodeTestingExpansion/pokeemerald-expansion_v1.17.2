@@ -11,6 +11,35 @@
 #define FLAG_0x026               0x026
 #define FLAG_0x027               0x027
 
+// Expansion feature flags use FRLG's otherwise unused flag slots. FLAG_0x028
+// is already used for the Bulbasaur Poke Ball, so no-encounters uses 0x025.
+#define FLAG_FRLG_NO_COLLISION                 0x026
+#define FLAG_FRLG_NO_TRAINER_SEE               0x027
+#define FLAG_FRLG_NO_ENCOUNTER                 0x025
+#define FLAG_FRLG_FISHING_MINIGAME_TUTORIAL    0x024
+#define FLAG_FRLG_SYS_QUEST_MENU_GET           0x023
+#define FLAG_FRLG_OW_ENCOUNTERS                0x022
+#define FLAG_UNUSED_0x026                      FLAG_FRLG_NO_COLLISION
+#define FLAG_UNUSED_0x027                      FLAG_FRLG_NO_TRAINER_SEE
+#define FLAG_UNUSED_0x028                      FLAG_FRLG_NO_ENCOUNTER
+#define FLAG_FISHING_MINIGAME_TUTORIAL         FLAG_FRLG_FISHING_MINIGAME_TUTORIAL
+#define FLAG_SYS_QUEST_MENU_GET                FLAG_FRLG_SYS_QUEST_MENU_GET
+#define FLAG_OW_ENCOUNTERS                     FLAG_FRLG_OW_ENCOUNTERS
+#define FLAG_EVENT_ITEMS                       0x140
+#define FLAG_ALTERING_CAVE_REGION_KANTO        0x141
+#define FLAG_ALTERING_CAVE_REGION_JOHTO        0x142
+#define FLAG_ALTERING_CAVE_REGION_HOENN        0x143
+#define FLAG_ALTERING_CAVE_REGION_SINNOH       0x144
+#define FLAG_ALTERING_CAVE_REGION_UNOVA        0x145
+#define FLAG_ALTERING_CAVE_REGION_KALOS        0x146
+#define FLAG_ALTERING_CAVE_REGION_ALOLA        0x147
+#define FLAG_ALTERING_CAVE_REGION_GALAR        0x148
+#define FLAG_ALTERING_CAVE_REGION_HISUI        0x149
+#define FLAG_ALTERING_CAVE_REGION_PALDEA       0x14A
+#define FLAG_ALTERING_CAVE_REGION_PARADOX      0x14B
+#define FLAG_ALTERING_CAVE_REGION_ULTRA_BEASTS 0x14C
+#define FLAG_ALTERING_CAVE_REGION_UNOWN         0x14D
+
 // Hide/show flags
 #define FLAG_HIDE_BULBASAUR_BALL                           0x028
 #define FLAG_HIDE_SQUIRTLE_BALL                            0x029
