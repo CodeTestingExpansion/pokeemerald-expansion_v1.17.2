@@ -74,6 +74,112 @@ def get_id_by_path(data, filename, whichtype):
     print(f"No ID found for the path '{filename}'.")
     quit()
 
+def get_item_id(mining_id):
+    item_name = mining_id.replace("MININGID_", "", 1)
+    if item_name.startswith("DREAM_"):
+        item_name = item_name[len("DREAM_"):]
+
+    return {
+        "EVER_STONE": "ITEM_EVERSTONE",
+        "REVIVE_MAX": "ITEM_MAX_REVIVE",
+        "ODD_KEY_STONE": "ITEM_ODD_KEYSTONE",
+    }.get(item_name, "ITEM_" + item_name)
+
+def get_tag(mining_id):
+    name = mining_id.replace("MININGID_", "", 1)
+    if name.startswith("STONE_"):
+        return "MINING_TAG_STONE_" + name[len("STONE_"):].upper()
+    name = {
+        "HEART_SCALE": "HEARTSCALE",
+        "HARD_STONE": "HARDSTONE",
+    }.get(name, name)
+    return "MINING_TAG_ITEM_" + name
+
+def get_object_name(mining_id):
+    return mining_id.replace("MININGID_", "", 1).lower()
+
+def generate_object_data(json_data):
+    lines = [
+        "struct MiningObject",
+        "{",
+        "    enum Item itemId;",
+        "    u16 tag;",
+        "    const struct CompressedSpriteSheet *sheet;",
+        "    const struct SpritePalette *palette;",
+        "    const struct SpriteTemplate *template;",
+        "};",
+        "",
+    ]
+
+    objects = []
+    for object_type in ("items", "stones"):
+        for item in json_data[object_type]:
+            mining_id = item["id"]
+            name = get_object_name(mining_id)
+            tag = get_tag(mining_id)
+            gfx_path = item["path"].replace("./", "", 1).replace(".4bpp", ".png")
+            if object_type == "stones":
+                palette_path = "graphics/mining_minigame/stones/stones.pal"
+                item_id = "ITEM_NONE"
+            else:
+                palette_path = "graphics/mining_minigame/items/fossil.pal" if name in ("skull_fossil", "armor_fossil") else gfx_path
+                item_id = get_item_id(mining_id)
+
+            lines.extend([
+                f'static const u32 sMiningGfx_{name}[] = INCGFX_U32("{gfx_path}", ".4bpp.smol");',
+                f'static const u16 sMiningPalette_{name}[] = INCGFX_U16("{palette_path}", ".gbapal");',
+                "",
+            ])
+            objects.append((mining_id, name, tag, item_id))
+
+    lines.extend(["static const struct CompressedSpriteSheet sMiningSheets[] =", "{"])
+    for mining_id, name, tag, _ in objects:
+        lines.append(f"    [{mining_id}] = {{sMiningGfx_{name}, 2048, {tag}}},")
+    lines.extend(["};", "", "static const struct SpritePalette sMiningPalettes[] =", "{"])
+    for mining_id, name, tag, _ in objects:
+        lines.append(f"    [{mining_id}] = {{sMiningPalette_{name}, {tag}}},")
+    lines.extend(["};", "", "static const struct SpriteTemplate sMiningTemplates[] =", "{"])
+    for mining_id, name, tag, _ in objects:
+        lines.extend([
+            f"    [{mining_id}] =",
+            "    {",
+            f"        .tileTag = {tag},",
+            f"        .paletteTag = {tag},",
+            "        .oam = &sOamItem64x64,",
+            "        .anims = gDummySpriteAnimTable,",
+            "        .images = NULL,",
+            "        .affineAnims = gDummySpriteAffineAnimTable,",
+            "        .callback = SpriteCallbackDummy,",
+            "    },",
+        ])
+    lines.extend([
+        "};",
+        "",
+        "static const struct MiningObject sMiningObjects[] =",
+        "{",
+        "    [MININGID_NONE] =",
+        "    {",
+        "        .itemId = ITEM_NONE,",
+        "        .tag = 0,",
+        "        .sheet = NULL,",
+        "        .palette = NULL,",
+        "        .template = NULL,",
+        "    },",
+    ])
+    for mining_id, name, tag, item_id in objects:
+        lines.extend([
+            f"    [{mining_id}] =",
+            "    {",
+            f"        .itemId = {item_id},",
+            f"        .tag = {tag},",
+            f"        .sheet = &sMiningSheets[{mining_id}],",
+            f"        .palette = &sMiningPalettes[{mining_id}],",
+            f"        .template = &sMiningTemplates[{mining_id}],",
+            "    },",
+        ])
+    lines.extend(["};", ""])
+    return "\n".join(lines)
+
 def main():
     json_path = "./tools/mining_minigame/table.json"
     gfx_items = "./graphics/mining_minigame/items/"
@@ -116,6 +222,9 @@ static const u32 sSpriteTileTable[][16] = {
 
     with open('./src/data/mining_minigame.h', 'w') as file:
         file.write(contents)
+
+    with open('./src/data/mining_minigame_objects.h', 'w') as file:
+        file.write(generate_object_data(json_data))
 
 
 if __name__ == "__main__":

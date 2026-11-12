@@ -22,7 +22,7 @@ You can also launch it from the in-game debug menu: open the debug menu, choose 
 
 ## Configuration and Debug Options
 
-The minigame's constants and options are in [`include/constants/mining_minigame.h`](/include/constants/mining_minigame.h).
+Minigame IDs and layout constants are in [`include/constants/mining_minigame.h`](/include/constants/mining_minigame.h). Message-box and debug options are in [`include/config/mining_minigame.h`](/include/config/mining_minigame.h).
 
 `MINING_FLAG_USE_DEFAULT_MESSAGE_BOX` selects which message box is used for minigame dialogue. It is `FALSE` by default, which uses the minigame's custom message box.
 
@@ -156,7 +156,7 @@ Items that are registered in `sMiningItemList` but omitted from all rarity table
 
 ### 6. Build and test
 
-From the repository root, run `make` so the asset conversions and generated sprite tile table are refreshed. To check the new item deterministically, enable `MINING_DEBUG_ENABLE` and `MINING_DEBUG_ENABLE_ITEM_GENERATION_OPTIONS`, select the new ID in the debug item slots, then start the minigame from the debug menu or your map script. Dig up the item to confirm it is added to the bag. Disable debug mode when finished.
+From the repository root, run `make` so the asset conversions and generated mining data are refreshed. To check the new item deterministically, enable `MINING_DEBUG_ENABLE` and `MINING_DEBUG_ENABLE_ITEM_GENERATION_OPTIONS` in `include/config/mining_minigame.h`, select the new ID in the debug item slots, then start the minigame from the debug menu or your map script. Dig up the item to confirm it is added to the bag. Disable debug mode when finished.
 
 ## Adding Other Items
 
